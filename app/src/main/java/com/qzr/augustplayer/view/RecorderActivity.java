@@ -7,7 +7,6 @@ import android.hardware.Camera;
 import android.util.Log;
 import android.util.Size;
 import android.view.MotionEvent;
-import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 
@@ -18,16 +17,17 @@ import com.qzr.augustplayer.manager.QzrCameraManager;
 import com.qzr.augustplayer.manager.RecorderManager;
 import com.qzr.augustplayer.service.CameraSensor;
 import com.qzr.augustplayer.utils.HandlerProcess;
+import com.qzr.augustplayer.widget.CameraGLSurfaceView;
 import com.qzr.augustplayer.widget.FocusViewWidget;
 
 import butterknife.BindView;
 
-public class RecorderActivity extends BaseActivity implements TextureView.SurfaceTextureListener, View.OnTouchListener, CameraSensor.CameraSensorListener, View.OnClickListener, View.OnLongClickListener, HandlerProcess.HandlerCallback {
+public class RecorderActivity extends BaseActivity implements  View.OnTouchListener, CameraSensor.CameraSensorListener, View.OnClickListener, View.OnLongClickListener, HandlerProcess.HandlerCallback, CameraGLSurfaceView.CameraGLSurfaceViewCallback {
 
     private static final String TAG = "RecorderActivity";
 
-    @BindView(R.id.texture_view)
-    TextureView textureView;
+    @BindView(R.id.sv_cameragl)
+    CameraGLSurfaceView cameraGLSurfaceView;
     @BindView(R.id.btn_video)
     Button btnVideo;
     @BindView(R.id.focus_view)
@@ -39,12 +39,20 @@ public class RecorderActivity extends BaseActivity implements TextureView.Surfac
     private boolean isRecording = false;
     private RecorderManager recorderManager;
 
-
     @Override
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume: ");
-        textureView.setSurfaceTextureListener(this);
+        cameraGLSurfaceView.setCallback(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG, "onPause: ");
+        QzrCameraManager.getInstance().stopPreView();
+        focusViewWidget.cancelFocus();
+        mCameraSensor.stopCameraSensor();
     }
 
     @Override
@@ -63,35 +71,9 @@ public class RecorderActivity extends BaseActivity implements TextureView.Surfac
         mCameraSensor = new CameraSensor(this);
         mCameraSensor.setCameraSensorListener(this);
 
-        textureView.setOnTouchListener(this);
-
+        cameraGLSurfaceView.setOnTouchListener(this);
         btnVideo.setOnClickListener(this);
         btnVideo.setOnLongClickListener(this);
-    }
-
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        QzrCameraManager.getInstance().buildCamera(surface).startPreView();
-        //不设置camera callback，则onPreviewFrame不会进去
-        QzrCameraManager.getInstance().setPreViewCallBack();
-        mCameraSensor.startCameraSensor();
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        QzrCameraManager.getInstance().stopPreView();
-        focusViewWidget.cancelFocus();
-        mCameraSensor.stopCameraSensor();
-        return false;
-    }
-
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
     }
 
     @Override
@@ -110,7 +92,7 @@ public class RecorderActivity extends BaseActivity implements TextureView.Surfac
         isFocusing = true;
 
         Point focusPoint = new Point(x, y);
-        Size screenSize = new Size(textureView.getWidth(), textureView.getHeight());
+        Size screenSize = new Size(cameraGLSurfaceView.getWidth(), cameraGLSurfaceView.getHeight());
 
         if (!autoFocus) {
             focusViewWidget.beginFocus(x, y);
@@ -129,7 +111,7 @@ public class RecorderActivity extends BaseActivity implements TextureView.Surfac
 
     @Override
     public void onRock() {
-        focus(textureView.getWidth() / 2, textureView.getHeight() / 2, true);
+        focus(cameraGLSurfaceView.getWidth() / 2, cameraGLSurfaceView.getHeight() / 2, true);
     }
 
     @Override
@@ -175,4 +157,13 @@ public class RecorderActivity extends BaseActivity implements TextureView.Surfac
         }
     }
 
+    @Override
+    public void onSurfaceViewCreate(SurfaceTexture texture) {
+    }
+
+    @Override
+    public void onSurfaceViewChange(int width, int height) {
+        QzrCameraManager.getInstance().buildCamera(cameraGLSurfaceView.getSurfaceTexture()).startPreView();
+        mCameraSensor.startCameraSensor();
+    }
 }

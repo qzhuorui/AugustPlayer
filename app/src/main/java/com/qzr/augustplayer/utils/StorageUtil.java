@@ -20,7 +20,7 @@ public class StorageUtil {
     private static final String TAG = "StorageUtil";
 
     private static String getDirName() {
-        return "SevenPlayer";
+        return "AugustPlayer";
     }
 
     public static final ThreadLocal<SimpleDateFormat> spFormat = new ThreadLocal<SimpleDateFormat>() {
