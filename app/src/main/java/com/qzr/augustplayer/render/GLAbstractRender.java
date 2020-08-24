@@ -46,7 +46,7 @@ public abstract class GLAbstractRender implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         //Called after the surface is created and whenever the OpenGL ES surface size changes
-        GLES20.glViewport(0, 0, width, height);//设置视口
+        GLES20.glViewport(0, 0, width, height);//设置绘制窗口/视图窗口
         this.height = height;
         this.width = width;
         onChanged();
@@ -55,7 +55,7 @@ public abstract class GLAbstractRender implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         //surface的绘制工作（最主要，最需要关注的部分）
-        GLES20.glUseProgram(mProgramId);//使program对象作为当前渲染的一部分。param指program对象的句柄，该程序对象的可执行文件将用作当前渲染状态的一部分
+        GLES20.glUseProgram(mProgramId);//将program加入到openGL环境；使program对象作为当前渲染的一部分。param指program对象的句柄，该程序对象的可执行文件将用作当前渲染状态的一部分
         onDraw();
     }
 
@@ -112,15 +112,13 @@ public abstract class GLAbstractRender implements GLSurfaceView.Renderer {
         int[] texture = new int[1];
         GLES20.glGenTextures(1, texture, 0);//生成纹理ID，且这个ID不会被后续调用返回，除非先deleteTextures。此时纹理ID还是没有维度的，当bind时才会指定
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture[0]);//将一个纹理ID，绑定到一个纹理目标(target)上，这个target之前的绑定自动解除。可以重复绑定。
-        /*
-        target：一维或二维；panme：设置环绕方式；param：纹理过滤方式，线性过滤和双线性插值等
-        GL_TEXTURE_MIN_FILTER 缩小过滤
-        GL_TEXTURE_WRAP_S S方向上的贴图模式
-         */
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+        //为纹理对象设置参数（过滤方式）
+        //处理相机数据使用OES，因为camera输出数据类型是YUV420P，使用OES可以自动将YUV转成RGB，我们就不需要在存储成MP4时再转化了。
+        //处理贴纸图片使用2D
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);//设置缩小过滤方式为GL_LINEAR(双线性，目前最主要过滤方式)，GL_NEAREST(容易出现锯齿效果)和MIP贴图(占用更多内存)
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);//设置放大过滤
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);//设置纹理S方向范围，控制纹理贴纸的范围在(0,1)之内
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);//设置纹理T方向范围
         return texture[0];
     }
 

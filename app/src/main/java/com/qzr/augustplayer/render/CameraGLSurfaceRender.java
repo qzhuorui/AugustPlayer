@@ -22,6 +22,7 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
     private int mTexture;
     private SurfaceTexture mSurfaceTexture;
 
+    //顶点位置缓存
     private FloatBuffer vertexBuffer;
     private FloatBuffer backTextureBuffer;
     private FloatBuffer frontTextureBuffer;
@@ -51,17 +52,19 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
             1f, 0f // 右下角
     };
 
-    // 每次取点的数量，必须为1,2,3,4
+    //一个Float占用4Byte
+    private final int BYTES_PER_FLOAT = 4;
+    //每次取点的数量，必须为1,2,3,4；三个顶点
     private final int CoordsPerVertexCount = 3;
-    // 顶点坐标数量
+    //顶点坐标数量
     private final int VertexCount = vertexData.length / CoordsPerVertexCount;
-    // 一次取出的大小
-    private final int VertexStride = CoordsPerVertexCount * 4;
+    //一次取出的大小
+    private final int VertexStride = CoordsPerVertexCount * BYTES_PER_FLOAT;
 
-    // 每次取点的数量，必须为1,2,3,4
+    //每次取点的数量，必须为1,2,3,4
     private final int CoordsPerTextureCount = 2;
-    // 一次取出的大小
-    private final int TextureStride = CoordsPerTextureCount * 4;
+    //一次取出的大小
+    private final int TextureStride = CoordsPerTextureCount * BYTES_PER_FLOAT;
 
     private int av_Position;
     private int af_Position;
@@ -70,20 +73,20 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
     public CameraGLSurfaceRender(CameraGLSufaceRenderCallback mRenderCallback) {
         this.mRenderCallback = mRenderCallback;
 
-        //坐标数据转化为FloatBuffer
-        this.vertexBuffer = ByteBuffer.allocateDirect(vertexData.length * 4)
+        //为顶点位置申请本地内存，每个浮点占4字节空间，坐标数据转化为FloatBuffer，用以传入openGL es program
+        this.vertexBuffer = ByteBuffer.allocateDirect(vertexData.length * BYTES_PER_FLOAT)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
                 .put(vertexData);
         this.vertexBuffer.position(0);
 
-        this.backTextureBuffer = ByteBuffer.allocateDirect(backTextureData.length * 4)
+        this.backTextureBuffer = ByteBuffer.allocateDirect(backTextureData.length * BYTES_PER_FLOAT)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
                 .put(backTextureData);
         this.backTextureBuffer.position(0);
 
-        this.frontTextureBuffer = ByteBuffer.allocateDirect(frontTextureData.length * 4)
+        this.frontTextureBuffer = ByteBuffer.allocateDirect(frontTextureData.length * BYTES_PER_FLOAT)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
                 .put(frontTextureData);
@@ -95,10 +98,10 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
         //创建外部纹理
         mTexture = loadExternelTexture();
 
-        av_Position = GLES20.glGetAttribLocation(mProgramId, "av_Position");//返回属性变量的位置，顶点
+        //获取着色器program内成员变量的id（句柄，指针）
+        av_Position = GLES20.glGetAttribLocation(mProgramId, "av_Position");//获取顶点着色器的av_Position成员句柄
         af_Position = GLES20.glGetAttribLocation(mProgramId, "af_Position");//片元
-
-        s_Texture = GLES20.glGetUniformLocation(mProgramId, "s_Texture");//返回统一变量的位置
+        s_Texture = GLES20.glGetUniformLocation(mProgramId, "s_Texture");//获取着色器程序中，指定为uniform类型变量的id
 
         // get surface
         mSurfaceTexture = new SurfaceTexture(mTexture);
@@ -121,7 +124,7 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
     @Override
     protected void onChanged() {
         if (mRenderCallback != null) {
-            mRenderCallback.onChanged(width,height);
+            mRenderCallback.onChanged(width, height);
         }
     }
 
@@ -133,19 +136,20 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
             mSurfaceTexture.updateTexImage();
         }
 
-        GLES20.glEnableVertexAttribArray(av_Position);//启用index指定的通用顶点属性数组
-        GLES20.glEnableVertexAttribArray(af_Position);
+        GLES20.glEnableVertexAttribArray(av_Position);//启用index指定的通用顶点属性数组，启用定点位置句柄
+        GLES20.glEnableVertexAttribArray(af_Position);//启用顶点颜色句柄
+        //av_Position；通过获取指向着色器相应数据成员的各个id，就能将自定义的顶点数据，颜色数据等传递到着色器中
+        //1.指定要修改的顶点着色器中顶点变量id；2.指定每个顶点属性的组件数量，position是由3个(x,y,z)组成，颜色是4个(r,g,b,a)
+        GLES20.glVertexAttribPointer(av_Position, CoordsPerVertexCount, GLES20.GL_FLOAT, false, VertexStride, vertexBuffer);//将顶点位置数据传入着色器
+        GLES20.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES20.GL_FLOAT, false, TextureStride, backTextureBuffer);//顶点坐标传递到顶点着色器
 
-        //设置顶点位置值
-        GLES20.glVertexAttribPointer(av_Position, CoordsPerVertexCount, GLES20.GL_FLOAT, false, VertexStride, vertexBuffer);
-        //设置纹理位置值
-        GLES20.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES20.GL_FLOAT, false, TextureStride, backTextureBuffer);
-
+        //绑定纹理
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);//激活纹理单元
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,mTexture);//将一个纹理ID，绑定到一个纹理目标(target)上
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTexture);
         GLES20.glUniform1i(s_Texture, 0);
-        //绘制GLES20.GL_TRIANGLE_STRIP：复用坐标
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP,0,VertexCount);//从数组数据中渲染图元
+
+        //图形绘制；顶点法：绘制三角形；复杂图形建议使用索引法
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, VertexCount);//从数组数据中渲染图元
 
         GLES20.glDisableVertexAttribArray(av_Position);
         GLES20.glDisableVertexAttribArray(af_Position);
