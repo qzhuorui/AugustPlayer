@@ -39,6 +39,8 @@ public class RecorderActivity extends BaseActivity implements  View.OnTouchListe
     private boolean isRecording = false;
     private RecorderManager recorderManager;
 
+    SurfaceTexture mSurfaceTexture;
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -159,11 +161,12 @@ public class RecorderActivity extends BaseActivity implements  View.OnTouchListe
 
     @Override
     public void onSurfaceViewCreate(SurfaceTexture texture) {
+        mSurfaceTexture = texture;
     }
 
     @Override
     public void onSurfaceViewChange(int width, int height) {
-        QzrCameraManager.getInstance().buildCamera(cameraGLSurfaceView.getSurfaceTexture()).startPreView();
+        QzrCameraManager.getInstance().buildCamera(mSurfaceTexture).startPreView();
         mCameraSensor.startCameraSensor();
     }
 }

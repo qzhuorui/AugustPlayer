@@ -27,7 +27,7 @@ public abstract class GLAbstractRender implements GLSurfaceView.Renderer {
     protected int height;
 
     /*
-        1.note: EGL context lost 的情况：onSurfaceCreated need to recreate
+        1.note: EGL context lost 情况：onSurfaceCreated need to recreate
             Since this method is called at the beginning of rendering, as well as
          every time the EGL context is lost, this method is a convenient place to put
          code to create resources that need to be created when the rendering

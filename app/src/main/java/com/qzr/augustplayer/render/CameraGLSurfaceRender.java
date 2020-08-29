@@ -100,7 +100,7 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
 
         //获取着色器program内成员变量的id（句柄，指针）
         av_Position = GLES20.glGetAttribLocation(mProgramId, "av_Position");//获取顶点着色器的av_Position成员句柄
-        af_Position = GLES20.glGetAttribLocation(mProgramId, "af_Position");//片元
+        af_Position = GLES20.glGetAttribLocation(mProgramId, "af_Position");//
         s_Texture = GLES20.glGetUniformLocation(mProgramId, "s_Texture");//获取着色器程序中，指定为uniform类型变量的id
 
         // get surface
@@ -148,7 +148,7 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTexture);
         GLES20.glUniform1i(s_Texture, 0);
 
-        //图形绘制；顶点法：绘制三角形；复杂图形建议使用索引法
+        //图形绘制；顶点法：绘制三角形；复杂图形建议使用索引法；顶点坐标的数量
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, VertexCount);//从数组数据中渲染图元
 
         GLES20.glDisableVertexAttribArray(av_Position);
