@@ -69,7 +69,7 @@ public abstract class GLAbstractRender implements GLSurfaceView.Renderer {
         mFragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, getFragmentSource());
 
         mProgramId = GLES20.glCreateProgram();//创建一个空program，并返回一个可以被引用的非零值。program是可以附加着色器对象的对象
-        GLES20.glAttachShader(mProgramId, mVertexShader);//将着色器对象附加到program对象
+        GLES20.glAttachShader(mProgramId, mVertexShader);//将着色器对象绑定到program对象
         GLES20.glAttachShader(mProgramId, mFragmentShader);
         GLES20.glLinkProgram(mProgramId);//链接program成功之后，可以在program对象中创建一个或多个可执行文件，当调用glUseProgram时，这些文件成为当前状态的一部分
 
@@ -88,16 +88,16 @@ public abstract class GLAbstractRender implements GLSurfaceView.Renderer {
      * @author: qzhuorui
      */
     private int loadShader(int shaderType, String shaderSource) {
-        int shaderId = GLES20.glCreateShader(shaderType);//创建一个着色器对象，并返回一个可以引用的非零值
-        GLES20.glShaderSource(shaderId, shaderSource);//替换着色器对象中的源代码
-        GLES20.glCompileShader(shaderId);//编译一个着色器对象
+        int shaderId = GLES20.glCreateShader(shaderType);//创建一个着色器对象，并返回一个可以引用的非零值；得到一个着色器ID，主要是对ID进行操作
+        GLES20.glShaderSource(shaderId, shaderSource);//替换着色器对象中的源代码；上传代码
+        GLES20.glCompileShader(shaderId);//编译一个着色器对象；编译代码
 
         int status[] = new int[1];
         GLES20.glGetShaderiv(shaderId, GLES20.GL_COMPILE_STATUS, status, 0);//查询状态值，判断着色器编译是否成功
         if (status[0] == GLES20.GL_FALSE) {
             Log.e(TAG, "loadShader: compiler error");
             Log.e(TAG, "loadShader: " + GLES20.glGetShaderInfoLog(shaderId));
-            GLES20.glDeleteShader(shaderId);
+            GLES20.glDeleteShader(shaderId);//失败的话，需要释放资源，就是删除这个引用
             return 0;
         }
         return shaderId;

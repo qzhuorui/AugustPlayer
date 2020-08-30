@@ -54,12 +54,13 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
 
     //一个Float占用4Byte
     private final int BYTES_PER_FLOAT = 4;
-    //每次取点的数量，必须为1,2,3,4；三个顶点
+
+    //每次取点的数量，必须为1,2,3,4；三个顶点，一个顶点需要3个来描述其位置，需要3个偏移量
     private final int CoordsPerVertexCount = 3;
+    //一次取出的大小；一个点需要的byte偏移量
+    private final int VertexStride = CoordsPerVertexCount * BYTES_PER_FLOAT;
     //顶点坐标数量
     private final int VertexCount = vertexData.length / CoordsPerVertexCount;
-    //一次取出的大小
-    private final int VertexStride = CoordsPerVertexCount * BYTES_PER_FLOAT;
 
     //每次取点的数量，必须为1,2,3,4
     private final int CoordsPerTextureCount = 2;
@@ -74,7 +75,7 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
         this.mRenderCallback = mRenderCallback;
 
         //为顶点位置申请本地内存，每个浮点占4字节空间，坐标数据转化为FloatBuffer，用以传入openGL es program
-        this.vertexBuffer = ByteBuffer.allocateDirect(vertexData.length * BYTES_PER_FLOAT)
+        this.vertexBuffer = ByteBuffer.allocateDirect(vertexData.length * BYTES_PER_FLOAT)//分配本地内存空间
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
                 .put(vertexData);
@@ -140,15 +141,14 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
         GLES20.glEnableVertexAttribArray(af_Position);//启用顶点颜色句柄
         //av_Position；通过获取指向着色器相应数据成员的各个id，就能将自定义的顶点数据，颜色数据等传递到着色器中
         //1.指定要修改的顶点着色器中顶点变量id；2.指定每个顶点属性的组件数量，position是由3个(x,y,z)组成，颜色是4个(r,g,b,a)
-        GLES20.glVertexAttribPointer(av_Position, CoordsPerVertexCount, GLES20.GL_FLOAT, false, VertexStride, vertexBuffer);//将顶点位置数据传入着色器
+        GLES20.glVertexAttribPointer(av_Position, CoordsPerVertexCount, GLES20.GL_FLOAT, false, VertexStride, vertexBuffer);//将顶点位置数据传入着色器，将坐标数据放入
         GLES20.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES20.GL_FLOAT, false, TextureStride, backTextureBuffer);//顶点坐标传递到顶点着色器
 
         //绑定纹理
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);//激活纹理单元
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTexture);
-        GLES20.glUniform1i(s_Texture, 0);
-
-        //图形绘制；顶点法：绘制三角形；复杂图形建议使用索引法；顶点坐标的数量
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);//重新激活纹理单元
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTexture);//重新去绑定
+        GLES20.glUniform1i(s_Texture, 0);//设置纹理的坐标
+        //图形绘制；顶点法：绘制三角形；复杂图形建议使用索引法；顶点的数量
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, VertexCount);//从数组数据中渲染图元
 
         GLES20.glDisableVertexAttribArray(av_Position);
