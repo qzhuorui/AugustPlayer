@@ -31,7 +31,8 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraGLSurfac
     }
 
     private void init(Context context) {
-        setEGLContextClientVersion(2);
+        setEGLContextClientVersion(3);
+        setDebugFlags(GLSurfaceView.DEBUG_CHECK_GL_ERROR);//激活log或错误检测
         mRender = new CameraGLSurfaceRender(this);
         setRenderer(mRender);
         //dity脏模式，按需渲染
