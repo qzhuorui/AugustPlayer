@@ -130,10 +130,10 @@ public class RenderDrawerGroups {
     }
 
     public void startRecord() {
-
+        mRecordDrawer.startRecord();
     }
 
     public void stopRecord() {
-
+        mRecordDrawer.stopRecord();
     }
 }

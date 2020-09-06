@@ -22,7 +22,7 @@ import com.qzr.augustplayer.widget.FocusViewWidget;
 
 import butterknife.BindView;
 
-public class RecorderActivity extends BaseActivity implements  View.OnTouchListener, CameraSensor.CameraSensorListener, View.OnClickListener, View.OnLongClickListener, HandlerProcess.HandlerCallback, CameraGLSurfaceView.CameraGLSurfaceViewCallback {
+public class RecorderActivity extends BaseActivity implements View.OnTouchListener, CameraSensor.CameraSensorListener, View.OnClickListener, View.OnLongClickListener, HandlerProcess.HandlerCallback, CameraGLSurfaceView.CameraGLSurfaceViewCallback {
 
     private static final String TAG = "RecorderActivity";
 
@@ -144,13 +144,14 @@ public class RecorderActivity extends BaseActivity implements  View.OnTouchListe
     public void handleMsg(int what, Object o) {
         switch (what) {
             case MessageWhat.STOP_RECORDER: {
-                RecorderManager.getInstance().stopRecord();
+                cameraGLSurfaceView.stopRecord();
+                recorderManager.releaseRecord();
                 isRecording = false;
                 break;
             }
             case MessageWhat.START_RECORDER: {
                 recorderManager = RecorderManager.getInstance().buildRecorder();
-                recorderManager.startRecord();
+                cameraGLSurfaceView.startRecord();
                 isRecording = true;
                 break;
             }
@@ -169,4 +170,5 @@ public class RecorderActivity extends BaseActivity implements  View.OnTouchListe
         QzrCameraManager.getInstance().buildCamera(mSurfaceTexture).startPreView();
         mCameraSensor.startCameraSensor();
     }
+
 }

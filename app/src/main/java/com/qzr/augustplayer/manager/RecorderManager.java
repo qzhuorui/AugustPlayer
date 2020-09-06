@@ -221,7 +221,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
         return true;
     }
 
-    private boolean releaseRecord() {
+    public boolean releaseRecord() {
         hasBuild = false;
         return true;
     }
@@ -360,6 +360,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
      */
     @Override
     public synchronized void onCdsInfoUpdate(byte[] csd0, byte[] csd1, int source) {
+        Log.d(TAG, "onCdsInfoUpdate: ");
         if (mMp4MuxerManager == null) {
             return;
         }
@@ -381,9 +382,9 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
 
         mCurTrackCount++;
 
-        if (mCurTrackCount >= mNeedTrackCount) {
+//        if (mCurTrackCount >= mNeedTrackCount) {
             startTransmit();
-        }
+//        }
     }
 
     /**
@@ -394,6 +395,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
      */
     @Override
     public synchronized void onEncodeBufferAvailable(MuxerBean muxerBean, int source) {
+        Log.d(TAG, "onEncodeBufferAvailable: ");
         if (mCurTrackCount <= 0) {
             stopRecordMix2File();
         }

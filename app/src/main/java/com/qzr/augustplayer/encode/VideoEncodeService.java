@@ -4,6 +4,7 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.util.Log;
+import android.view.Surface;
 
 import com.qzr.augustplayer.utils.CameraUtil;
 import com.qzr.augustplayer.utils.ThreadPoolProxyFactory;
@@ -36,6 +37,8 @@ public class VideoEncodeService {
     private MediaCodec mMediaCodec;
     private MediaFormat mMediaFormat;
 
+    private Surface mInputSurface;
+
     private CopyOnWriteArraySet<OnEncodeDataAvailable> bufferAvailableCallback;
 
     private byte mVideoEncodeUseState = 0;
@@ -66,11 +69,13 @@ public class VideoEncodeService {
             mMediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
             mMediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
             mMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
-            mMediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
+            mMediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
             mMediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
             mMediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel31);
 
             mMediaCodec.configure(mMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+
+            mInputSurface = mMediaCodec.createInputSurface();//codec创建surface，为输入数据创建一个目标Surface，根据这个生成eglSurface
 
             YUVDate = new byte[1920 * 1080 * 3 / 2];
             encodeDataQueue = new LinkedList<>();
@@ -80,6 +85,10 @@ public class VideoEncodeService {
             Log.e(TAG, "VideoEncodeService: video encoder config error");
             e.printStackTrace();
         }
+    }
+
+    public Surface getInputSurface() {
+        return mInputSurface;
     }
 
     public boolean startVideoEncode() {
@@ -275,6 +284,57 @@ public class VideoEncodeService {
     public synchronized void removeCallBack(OnEncodeDataAvailable onEncodeDataAvailable) {
         if (bufferAvailableCallback != null) {
             bufferAvailableCallback.remove(onEncodeDataAvailable);
+        }
+    }
+
+    public void getEncodedData(boolean endOfStream) {
+        if (endOfStream) {
+            mMediaCodec.signalEndOfInputStream();
+        }
+        MediaCodec.BufferInfo encodeBufferInfo = new MediaCodec.BufferInfo();
+        while (true) {
+            int outputIndex = mMediaCodec.dequeueOutputBuffer(encodeBufferInfo, TIMEOUT_S);
+            Log.i(TAG, "getEncodedData: ");
+            if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                MediaFormat format = mMediaCodec.getOutputFormat();
+                ByteBuffer csdTmp = format.getByteBuffer("csd-0");
+                sps = csdTmp.array();
+                csdTmp = format.getByteBuffer("csd-1");
+                pps = csdTmp.array();
+
+                if (bufferAvailableCallback != null && bufferAvailableCallback.size() > 0) {
+                    for (OnEncodeDataAvailable onEncodeDataAvailable : bufferAvailableCallback) {
+                        if (onEncodeDataAvailable != null) {
+                            onEncodeDataAvailable.onCdsInfoUpdate(sps, pps, Mp4MuxerManager.SOURCE_VIDEO);
+                        }
+                    }
+                }
+            }
+
+            while (outputIndex >= 0) {
+                ByteBuffer outputBuffer = mMediaCodec.getOutputBuffer(outputIndex);
+
+                if (encodeBufferInfo.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
+                    encodeBufferInfo.size = 0;
+                }
+
+                if (encodeBufferInfo.size > 0) {
+                    byte[] outputData = new byte[encodeBufferInfo.size];
+                    outputBuffer.get(outputData);
+                    outputBuffer.position(encodeBufferInfo.offset);
+                    outputBuffer.limit(encodeBufferInfo.offset + encodeBufferInfo.size);
+                    encodeBufferInfo.presentationTimeUs = getPts();
+                    enqueueFrame(new MuxerBean(outputData, encodeBufferInfo, true));
+                }
+
+                mMediaCodec.releaseOutputBuffer(outputIndex, false);
+                encodeBufferInfo = new MediaCodec.BufferInfo();
+                outputIndex = mMediaCodec.dequeueOutputBuffer(encodeBufferInfo, TIMEOUT_S);
+
+                if ((encodeBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    break;
+                }
+            }
         }
     }
 }

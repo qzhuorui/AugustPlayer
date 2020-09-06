@@ -5,7 +5,7 @@ import android.graphics.SurfaceTexture;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
-import com.qzr.augustplayer.render.CameraGLSurfaceRender;
+import com.qzr.augustplayer.render.CameraSurfaceRender;
 
 /**
  * @ProjectName: AugustPlayer
@@ -15,10 +15,10 @@ import com.qzr.augustplayer.render.CameraGLSurfaceRender;
  * @Author: qzhuorui
  * @CreateDate: 2020/8/23 9:59
  */
-public class CameraGLSurfaceView extends GLSurfaceView implements CameraGLSurfaceRender.CameraGLSufaceRenderCallback {
+public class CameraGLSurfaceView extends GLSurfaceView implements CameraSurfaceRender.CameraSufaceRenderCallback {
     private static final String TAG = "CameraGLSurfaceView";
 
-    private CameraGLSurfaceRender mRender;
+    private CameraSurfaceRender mRender;
     private CameraGLSurfaceViewCallback mCallback;
 
     public CameraGLSurfaceView(Context context) {
@@ -33,14 +33,10 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraGLSurfac
     private void init(Context context) {
         setEGLContextClientVersion(3);
         setDebugFlags(GLSurfaceView.DEBUG_CHECK_GL_ERROR);//激活log或错误检测
-        mRender = new CameraGLSurfaceRender(this);
+        mRender = new CameraSurfaceRender(context);
+        mRender.setCallback(this);
         setRenderer(mRender);
-        //dity脏模式，按需渲染
         setRenderMode(RENDERMODE_WHEN_DIRTY);
-    }
-
-    public SurfaceTexture getSurfaceTexture() {
-        return mRender.getmSurfaceTexture();
     }
 
     @Override
@@ -49,9 +45,9 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraGLSurfac
     }
 
     @Override
-    public void onCreate(SurfaceTexture texture) {
+    public void onCreate() {
         if (mCallback != null) {
-            mCallback.onSurfaceViewCreate(texture);
+            mCallback.onSurfaceViewCreate(getSurfaceTexture());
         }
     }
 
@@ -67,12 +63,33 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraGLSurfac
 
     }
 
+    public SurfaceTexture getSurfaceTexture() {
+        return mRender.getCameraSurfaceTexture();
+    }
+
+    public void releaseSurfaceTexture() {
+        mRender.releaseSurfaceTexture();
+    }
+
+    public void resumeSurfaceTexture() {
+        mRender.resumeSurfaceTexture();
+    }
+
+    public void startRecord() {
+        mRender.startRecord();
+    }
+
+    public void stopRecord() {
+        mRender.stopRecord();
+    }
+
     public void setCallback(CameraGLSurfaceViewCallback mCallback) {
         this.mCallback = mCallback;
     }
 
     public interface CameraGLSurfaceViewCallback {
         void onSurfaceViewCreate(SurfaceTexture texture);
+
         void onSurfaceViewChange(int width, int height);
     }
 }
