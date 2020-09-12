@@ -214,6 +214,11 @@ public class QzrCameraManager implements Camera.ErrorCallback, Camera.PreviewCal
         releaseCamera();
     }
 
+     /**
+      * @description 漏了的话，onPreviewFrame不会回调
+      * @date: 2020/9/12 14:23
+      * @author: qzhuorui
+      */
     public void setPreViewCallBack() {
         mCamera.addCallbackBuffer(cameraBuffer);
         mCamera.setPreviewCallbackWithBuffer(this);
@@ -241,7 +246,7 @@ public class QzrCameraManager implements Camera.ErrorCallback, Camera.PreviewCal
                         }
                         continue;
                     }
-                    Log.d(TAG, "run: offerData2Encode");
+//                    Log.d(TAG, "run: offerData2Encode");
                     VideoEncodeService.getInstance().handleNV21data(tmp);
                 } else {
                     Log.e(TAG, "run: offerData2Encode break");

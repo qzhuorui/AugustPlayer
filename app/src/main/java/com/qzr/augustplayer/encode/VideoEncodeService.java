@@ -69,7 +69,7 @@ public class VideoEncodeService {
             mMediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
             mMediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
             mMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
-            mMediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            mMediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);//这个别忘记/写错了
             mMediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
             mMediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel31);
 
@@ -87,6 +87,11 @@ public class VideoEncodeService {
         }
     }
 
+    /**
+     * @description 获取编码feed数据的输入源surface；在输入Surface渲染的画面就能直接当做输入源流进到编码器中
+     * @date: 2020/9/12 12:14
+     * @author: qzhuorui
+     */
     public Surface getInputSurface() {
         return mInputSurface;
     }
@@ -287,15 +292,28 @@ public class VideoEncodeService {
         }
     }
 
-    public void getEncodedData(boolean endOfStream) {
+    /**
+     * @description 从编码器中提取所有未处理的数据
+     * @date: 2020/9/12 12:21
+     * @author: qzhuorui
+     * @param: 编码是否结束
+     * @return:
+     */
+    public void drainEncoderData(boolean endOfStream) {
         if (endOfStream) {
+            //发送一个EOS结束标志位到输入源
+            //然后等到我们在编码输出的数据发现EOS的时候，证明最后的一批编码数据已经编码成功了
             mMediaCodec.signalEndOfInputStream();
         }
         MediaCodec.BufferInfo encodeBufferInfo = new MediaCodec.BufferInfo();
         while (true) {
             int outputIndex = mMediaCodec.dequeueOutputBuffer(encodeBufferInfo, TIMEOUT_S);
-            Log.i(TAG, "getEncodedData: ");
-            if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+
+            if (outputIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                if (!endOfStream) {
+                    break;
+                }
+            } else if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                 MediaFormat format = mMediaCodec.getOutputFormat();
                 ByteBuffer csdTmp = format.getByteBuffer("csd-0");
                 sps = csdTmp.array();
@@ -315,6 +333,7 @@ public class VideoEncodeService {
                 ByteBuffer outputBuffer = mMediaCodec.getOutputBuffer(outputIndex);
 
                 if (encodeBufferInfo.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
+                    //标记为这样的缓冲器包含编解码器初始化/编解码器特定数据而不是媒体数据
                     encodeBufferInfo.size = 0;
                 }
 

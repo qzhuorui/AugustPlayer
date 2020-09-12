@@ -87,7 +87,6 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     @Override
     public void draw(long timestamp, float[] transformMatrix) {
         if (isRecording) {
-            Log.d(TAG, "draw: ");
             Message msg = mMsgHandler.obtainMessage(MsgHandler.MSG_FRAME, timestamp);
             mMsgHandler.sendMessage(msg);
         }
@@ -169,9 +168,9 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     @SuppressLint("HandlerLeak")
     private class MsgHandler extends Handler {
 
-        public static final int MSG_START_RECORD = 1;
-        public static final int MSG_STOP_RECORD = 2;
-        public static final int MSG_FRAME = 3;
+        static final int MSG_START_RECORD = 1;
+        static final int MSG_STOP_RECORD = 2;
+        static final int MSG_FRAME = 3;
 
         @Override
         public void handleMessage(Message msg) {
@@ -198,11 +197,11 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         try {
             //根据当前线程的eglContext，创建openGl环境，配置
             mEglHelper = new EGLHelper();
-            mEglHelper.createGL(context);
+            mEglHelper.createGL(context);//创建EGL上下文环境等
 
             videoEncodeService = VideoEncodeService.getInstance();
-            videoEncodeService.startVideoEncode();
-            mEglSurface = mEglHelper.createWindowSurface(videoEncodeService.getInputSurface());//根据codec的surface创建eglSurface
+            videoEncodeService.startVideoEncode();//codec.start
+            mEglSurface = mEglHelper.createWindowSurface(videoEncodeService.getInputSurface());//根据codec的surface创建eglSurface；创建要使用的渲染surface
             boolean error = mEglHelper.makeCurrent(mEglSurface);//在完成EGL的初始化之后,需要通过eglMakeCurrent()函数来将当前的上下文切换,这样opengl的函数才能启动作用。
             if (!error) {
                 Log.e(TAG, "prepareVideoEncoder: make current error");
@@ -215,7 +214,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     }
 
     private void stopVideoEncoder() {
-        videoEncodeService.getEncodedData(true);
+        videoEncodeService.drainEncoderData(true);
         if (mEglHelper != null) {
             mEglHelper.destroySurface(mEglSurface);
             mEglHelper.destroyGL();
@@ -228,7 +227,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     private void drawFrame(long timeStamp) {
         Log.i(TAG, "drawFrame: ");
         mEglHelper.makeCurrent(mEglSurface);
-        videoEncodeService.getEncodedData(false);
+        videoEncodeService.drainEncoderData(false);
         onDraw(null);
         mEglHelper.setPresentationTime(mEglSurface, timeStamp);
         mEglHelper.swapBuffers(mEglSurface);

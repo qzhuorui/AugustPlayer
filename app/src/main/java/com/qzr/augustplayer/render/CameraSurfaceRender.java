@@ -42,6 +42,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
         mCameraTextureId = GlesUtil.createCameraTexture();//生成纹理ID，绑定到OES上，接收camera原始数据
         renderDrawerGroups.setInputTexture(mCameraTextureId);//传入OES纹理Id
         renderDrawerGroups.create();
+        //根据mCameraTextureId创建对应Surface
         initCameraTexture();
         if (mCallback != null) {
             mCallback.onCreate();
@@ -54,7 +55,13 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
       * @author: qzhuorui
       */
     private void initCameraTexture() {
+        /**
+         * 我们可以这样理解，
+         * 就是我们通过这个SurfaceTexture从Camera接取预览帧的图像流，
+         * 然后我们就可以通过其绑定的GL纹理对象，直接按照纹理使用绘制了
+         */
         mCameraTexture = new SurfaceTexture(mCameraTextureId);//根据生成的纹理，新建surfaceTexture
+        //用于让SurfaceTexture的使用者知道有新数据到来
         mCameraTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
             public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -77,7 +84,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         if (mCameraTexture!=null){
-            mCameraTexture.updateTexImage();//将纹理图像更新为图像流中最新的帧
+            mCameraTexture.updateTexImage();//根据内容流中最近的图像更新SurfaceTexture对应的GL纹理对象，也是告诉camera我已经使用这帧图像了
             timestamp = mCameraTexture.getTimestamp();//获取最近updateTexImage的时间戳
             mCameraTexture.getTransformMatrix(mTransformMatrix);//获取最近updateTexImage导致的4X4纹理坐标变化矩阵
             renderDrawerGroups.draw(timestamp, mTransformMatrix);

@@ -35,12 +35,13 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraSurfaceR
         setDebugFlags(GLSurfaceView.DEBUG_CHECK_GL_ERROR);//激活log或错误检测
         mRender = new CameraSurfaceRender(context);
         mRender.setCallback(this);
-        setRenderer(mRender);
+        setRenderer(mRender);//很重要，渲染工作就依靠渲染器；会开启一个线程，即GL线程
         setRenderMode(RENDERMODE_WHEN_DIRTY);
     }
 
     @Override
     public void onRequestRender() {
+        // TODO: 2020/9/12 必须在setRenderer之后调用？
         requestRender();
     }
 
@@ -63,6 +64,11 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraSurfaceR
 
     }
 
+    /**
+     * @description OES绑定的纹理，生成的TextureView，承载camera预览流
+     * @date: 2020/9/12 14:51
+     * @author: qzhuorui
+     */
     public SurfaceTexture getSurfaceTexture() {
         return mRender.getCameraSurfaceTexture();
     }

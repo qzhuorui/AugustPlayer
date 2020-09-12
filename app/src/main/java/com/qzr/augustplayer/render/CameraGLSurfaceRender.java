@@ -133,8 +133,9 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
     protected void onDraw() {
         //执行绘制工作
         if (mSurfaceTexture != null) {
-            //将最新更新的图像转成GL中的纹理
-            mSurfaceTexture.updateTexImage();
+            //SurfaceTexture从图像流（来自Camera预览，视频解码，GL绘制场景等）中获得帧数据，
+            //当调用updateTexImage()时，根据内容流中最近的图像更新SurfaceTexture对应的GL纹理对象
+            mSurfaceTexture.updateTexImage();//将最新更新的图像转成GL中的纹理
         }
 
         GLES20.glEnableVertexAttribArray(av_Position);//启用index指定的通用顶点属性数组，启用定点位置句柄

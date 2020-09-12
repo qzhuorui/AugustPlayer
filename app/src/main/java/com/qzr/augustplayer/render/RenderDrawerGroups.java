@@ -116,6 +116,7 @@ public class RenderDrawerGroups {
      * @author: qzhuorui
      */
     private void bindFrameBuffer(int textureId) {
+        //通过绑定纹理对象来锁定挂接区
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, mFrameBuffer);//绑定一个命名的帧缓冲区对象（FBO），符号常量必须是GL_FRAMEBUFFER
         GLES30.glFramebufferTexture2D(GLES30.GL_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0, GLES30.GL_TEXTURE_2D, textureId, 0);//将纹理图像添加到FBO，符号常量必须是GL_FRAMEBUFFER。
     }
@@ -126,6 +127,7 @@ public class RenderDrawerGroups {
      * @author: qzhuorui
      */
     private void unBindFrameBuffer() {
+        //告诉OpenGL，我们已经不需要在FBO上操作了
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0);
     }
 
