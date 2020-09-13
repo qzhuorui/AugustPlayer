@@ -24,13 +24,20 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
     private int mInputTextureId;
     private int mOutputTextureId;
 
+    /**
+     * @description 父类中创建了program，缓冲区句柄后的callback
+     * @date: 2020/9/13 11:27
+     * @author: qzhuorui
+     */
     @Override
-    protected void onCreated() {}
+    protected void onCreated() {
+    }
 
     @Override
     protected void onChanged(int width, int height) {
         mOutputTextureId = GlesUtil.createFrameTexture(width, height);//创建2D纹理ID
 
+        //拿到GL SL中声明的变量的对应引用
         av_Position = GLES30.glGetAttribLocation(mProgram, "av_Position");
         af_Position = GLES30.glGetAttribLocation(mProgram, "af_Position");
         s_Texture = GLES30.glGetUniformLocation(mProgram, "s_Texture");
@@ -51,17 +58,20 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
         GLES30.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES30.GL_FLOAT, false, 0, 0);
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
+        //绘制
         bindTexture(mInputTextureId);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, VertexCount);
         unBindTexure();
+
         GLES30.glDisableVertexAttribArray(av_Position);
         GLES30.glDisableVertexAttribArray(af_Position);
     }
 
     private void bindTexture(int textureId) {
-        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
-        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
-        GLES30.glUniform1i(s_Texture, 0);
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);//激活纹理单元
+        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);//绑定IES纹理
+        GLES30.glUniform1i(s_Texture, 0);//将纹理设置给Shader
     }
 
     private void unBindTexure() {
@@ -76,7 +86,7 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
 
     @Override
     public int getOutputTextureId() {
-        //返回创建的2D纹理ID
+        //返回创建的2D纹理ID，绑定到FBO上
         return mOutputTextureId;
     }
 

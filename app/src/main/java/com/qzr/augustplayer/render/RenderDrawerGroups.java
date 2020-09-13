@@ -71,7 +71,8 @@ public class RenderDrawerGroups {
         mRecordDrawer.surfaceChangedSize(width, height);
 
         this.mOriginalDrawer.setInputTextureId(mInputTexture);//传入OES纹理ID
-        int textureId = this.mOriginalDrawer.getOutputTextureId();//获取Original生成的2D纹理ID
+        int textureId = this.mOriginalDrawer.getOutputTextureId();//获取onCreate()创建的2D纹理
+
         mDisplayDrawer.setInputTextureId(textureId);//传入2D纹理ID
         mRecordDrawer.setInputTextureId(textureId);//传入2D纹理ID
     }
@@ -90,7 +91,7 @@ public class RenderDrawerGroups {
         //将绑定到FBO中，最后转换成mOriginalDrawer中的sample2D纹理
         drawRender(mOriginalDrawer, true, timestamp, transformMatrix);
         //不绑定FBO，直接绘制到屏幕上
-        drawRender(mDisplayDrawer, false,  timestamp, transformMatrix);
+        drawRender(mDisplayDrawer, false, timestamp, transformMatrix);
         drawRender(mRecordDrawer, false, timestamp, transformMatrix);
     }
 
@@ -111,7 +112,7 @@ public class RenderDrawerGroups {
     }
 
     /**
-     * @description 纹理和FBO绑定，后续的绘制动作就会存储FBO上
+     * @description DisplayRenderDrawer的GL_TEXTURE_2D纹理到FBO上；纹理和FBO绑定，后续的绘制动作就会存储FBO上
      * @date: 2020/8/29 15:45
      * @author: qzhuorui
      */

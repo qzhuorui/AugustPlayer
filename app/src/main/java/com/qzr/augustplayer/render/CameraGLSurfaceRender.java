@@ -146,9 +146,10 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
         GLES20.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES20.GL_FLOAT, false, TextureStride, backTextureBuffer);//顶点坐标传递到顶点着色器
 
         //绑定纹理
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);//重新激活纹理单元
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);//重新激活纹理单元，严谨点应该是选择当前活跃的纹理单元，并不是激活和启用
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTexture);//重新去绑定
-        GLES20.glUniform1i(s_Texture, 0);//设置纹理的坐标
+        GLES20.glUniform1i(s_Texture, 0);//设置纹理的坐标；将纹理设置给Shader；将纹理传入Shader（告诉Shader，采样器是哪个）
+
         //图形绘制；顶点法：绘制三角形；复杂图形建议使用索引法；顶点的数量
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, VertexCount);//从数组数据中渲染图元
 

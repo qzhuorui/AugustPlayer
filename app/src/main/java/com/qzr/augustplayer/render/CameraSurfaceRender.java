@@ -66,6 +66,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
             @Override
             public void onFrameAvailable(SurfaceTexture surfaceTexture) {
                 if (mCallback != null) {
+                    //刷新控件，可以触发onDrawFrame
                     mCallback.onRequestRender();
                 }
             }
@@ -84,6 +85,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         if (mCameraTexture!=null){
+            //更新预览上的图像由onRequestRender通知
             mCameraTexture.updateTexImage();//根据内容流中最近的图像更新SurfaceTexture对应的GL纹理对象，也是告诉camera我已经使用这帧图像了
             timestamp = mCameraTexture.getTimestamp();//获取最近updateTexImage的时间戳
             mCameraTexture.getTransformMatrix(mTransformMatrix);//获取最近updateTexImage导致的4X4纹理坐标变化矩阵

@@ -69,7 +69,7 @@ public class EGLHelper {
      * @author: qzhuorui
      */
     private void setDisplay() {
-        mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);//从系统中得到用于显示图片绘制的Display的handle
+        mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);//从系统中得到用于显示图片绘制的Display的handle，作为OpenGL.ES的渲染目标
         //检测是否创建成功
         int[] version = new int[2];
         //初始化与EGLDisplay之间的关联
@@ -127,7 +127,7 @@ public class EGLHelper {
                 EGL14.EGL_CONTEXT_CLIENT_VERSION, 3,
                 EGL14.EGL_NONE
         };
-        //指定显示的连接；前面选好的Config；允许其他EGLContext共享数据，使用EGL_NO_CONTEXT表示不共享
+        //指定显示的连接；前面选好的Config；允许其他EGLContext共享数据，使用EGL_NO_CONTEXT表示不共享；与传入的context共享OpenGL资源
         mEglContext = EGL14.eglCreateContext(mEglDisplay, mEglConfig, context, contextAttribs, 0);
         if (mEglContext == EGL14.EGL_NO_CONTEXT) {
             throw new RuntimeException("EGL error " + EGL14.eglGetError());
@@ -152,7 +152,7 @@ public class EGLHelper {
      */
     private EGLSurface createWindowSurface(EGLConfig config, Object surface) {
         //创建我们想要的EGLSurface，之前的信息保存在config中
-        EGLSurface eglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, config, surface, new int[]{EGL14.EGL_NONE}, 0);
+        EGLSurface eglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, config, surface, new int[]{EGL14.EGL_NONE}, 0);//将EGl和设备屏幕连接起来
         if (eglSurface == EGL14.EGL_NO_SURFACE) {
             Log.d(TAG, "createWindowSurface" + EGL14.eglGetError());
             return null;

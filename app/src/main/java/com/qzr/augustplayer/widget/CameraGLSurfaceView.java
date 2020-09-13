@@ -34,14 +34,14 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraSurfaceR
         setEGLContextClientVersion(3);
         setDebugFlags(GLSurfaceView.DEBUG_CHECK_GL_ERROR);//激活log或错误检测
         mRender = new CameraSurfaceRender(context);
-        mRender.setCallback(this);
         setRenderer(mRender);//很重要，渲染工作就依靠渲染器；会开启一个线程，即GL线程
+        mRender.setCallback(this);//注意setRenderer时序
         setRenderMode(RENDERMODE_WHEN_DIRTY);
     }
 
     @Override
     public void onRequestRender() {
-        // TODO: 2020/9/12 必须在setRenderer之后调用？
+        //必须在setRenderer之后调用
         requestRender();
     }
 

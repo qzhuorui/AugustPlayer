@@ -64,8 +64,14 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         mEglContext = EGL14.eglGetCurrentContext();//创建EGL环境，在GLSurface的GLThread中获取EGLContext（存放在ThreadLocal中）
     }
 
+    /**
+     * @description 父类中创建了program，缓冲区句柄后的callback
+     * @date: 2020/9/13 11:27
+     * @author: qzhuorui
+     */
     @Override
     protected void onCreated() {
+        //必须要在其Context环境中，才能执行OpenGL方法
         mProgram = GlesUtil.createProgram(getVertexSource(), getFragmentSource());
         initVertexBufferObjects();
         av_Position = GLES30.glGetAttribLocation(mProgram, "av_Position");
@@ -118,6 +124,11 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
     }
 
+    /**
+     * @description 传入的2D纹理
+     * @date: 2020/9/13 11:43
+     * @author: qzhuorui
+     */
     @Override
     public void setInputTextureId(int textureId) {
         this.mTextureId = textureId;
@@ -130,25 +141,13 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
 
     @Override
     protected String getVertexSource() {
-        final String source = "attribute vec4 av_Position; " +
-                "attribute vec2 af_Position; " +
-                "varying vec2 v_texPo; " +
-                "void main() { " +
-                "    v_texPo = af_Position; " +
-                "    gl_Position = av_Position; " +
-                "}";
+        final String source = "attribute vec4 av_Position; " + "attribute vec2 af_Position; " + "varying vec2 v_texPo; " + "void main() { " + "    v_texPo = af_Position; " + "    gl_Position = av_Position; " + "}";
         return source;
     }
 
     @Override
     protected String getFragmentSource() {
-        final String source = "precision mediump float;\n" +
-                "varying vec2 v_texPo;\n" +
-                "uniform sampler2D s_Texture;\n" +
-                "void main() {\n" +
-                "   vec4 tc = texture2D(s_Texture, v_texPo);\n" +
-                "   gl_FragColor = texture2D(s_Texture, v_texPo);\n" +
-                "}";
+        final String source = "precision mediump float;\n" + "varying vec2 v_texPo;\n" + "uniform sampler2D s_Texture;\n" + "void main() {\n" + "   vec4 tc = texture2D(s_Texture, v_texPo);\n" + "   gl_FragColor = texture2D(s_Texture, v_texPo);\n" + "}";
         return source;
     }
 
@@ -202,6 +201,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
             videoEncodeService = VideoEncodeService.getInstance();
             videoEncodeService.startVideoEncode();//codec.start
             mEglSurface = mEglHelper.createWindowSurface(videoEncodeService.getInputSurface());//根据codec的surface创建eglSurface；创建要使用的渲染surface
+            //注意：OpenGL.ES的渲染必须新开一个线程，并为该线程绑定显示设备和context；OpenGL的指令必须在其Context环境中才能执行，必须makeCurrent
             boolean error = mEglHelper.makeCurrent(mEglSurface);//在完成EGL的初始化之后,需要通过eglMakeCurrent()函数来将当前的上下文切换,这样opengl的函数才能启动作用。
             if (!error) {
                 Log.e(TAG, "prepareVideoEncoder: make current error");

@@ -20,6 +20,11 @@ public class DisplayRenderDrawer extends BaseRenderDrawer {
 
     private int mTextureId;
 
+    /**
+     * @description 父类中创建了program，缓冲区句柄后的callback
+     * @date: 2020/9/13 11:27
+     * @author: qzhuorui
+     */
     @Override
     protected void onCreated() {
     }
@@ -38,15 +43,15 @@ public class DisplayRenderDrawer extends BaseRenderDrawer {
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexBufferId);
         GLES30.glVertexAttribPointer(av_Position, CoordsPerVertexCount, GLES30.GL_FLOAT, false, 0, 0);
-        // 用GPU中的缓冲数据，不再RAM中取数据，所以后2个参数为0
+        //用GPU中的缓冲数据，不在RAM中取数据，所以后2个参数为0
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mDisplayTextureBufferId);
         GLES30.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES30.GL_FLOAT, false, 0, 0);
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mTextureId);
         GLES30.glUniform1i(s_Texture, 0);
-        //绘制 GLES30.GL_TRIANGLE_STRIP:复用坐标
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, VertexCount);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, 0);
 
@@ -54,6 +59,11 @@ public class DisplayRenderDrawer extends BaseRenderDrawer {
         GLES30.glDisableVertexAttribArray(av_Position);
     }
 
+    /**
+     * @description 传入的2D纹理
+     * @date: 2020/9/13 11:43
+     * @author: qzhuorui
+     */
     @Override
     public void setInputTextureId(int textureId) {
         this.mTextureId = textureId;
@@ -78,13 +88,13 @@ public class DisplayRenderDrawer extends BaseRenderDrawer {
 
     @Override
     protected String getFragmentSource() {
-        final String source = "precision mediump float;\n" +
-                "varying vec2 v_texPo;\n" +
-                "uniform sampler2D s_Texture;\n" +
-                "void main() {\n" +
-                "   vec4 tc = texture2D(s_Texture, v_texPo);\n" +
-                "   float color = tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11;\n" +
-                "    gl_FragColor = vec4(color, color, color, 1);\n" +
+        final String source = "precision mediump float;" +
+                "varying vec2 v_texPo;" +
+                "uniform sampler2D s_Texture;" +
+                "void main() {" +
+                "   vec4 tc = texture2D(s_Texture, v_texPo);" +
+                "   float color = tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11;" +
+                "    gl_FragColor = vec4(color, color, color, 1);" +
                 "}";
         return source;
     }
