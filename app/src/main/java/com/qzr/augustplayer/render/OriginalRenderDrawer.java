@@ -70,7 +70,7 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
 
     private void bindTexture(int textureId) {
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);//激活纹理单元
-        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);//绑定IES纹理
+        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);//绑定OES纹理
         GLES30.glUniform1i(s_Texture, 0);//将纹理设置给Shader
     }
 

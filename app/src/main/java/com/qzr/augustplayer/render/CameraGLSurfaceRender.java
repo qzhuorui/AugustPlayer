@@ -96,7 +96,7 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
 
     @Override
     protected void onCreate() {
-        //创建外部纹理
+        //创建OES外部纹理
         mTexture = loadExternelTexture();
 
         //获取着色器program内成员变量的id（句柄，指针）
@@ -145,9 +145,10 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
         GLES20.glVertexAttribPointer(av_Position, CoordsPerVertexCount, GLES20.GL_FLOAT, false, VertexStride, vertexBuffer);//将顶点位置数据传入着色器，将坐标数据放入
         GLES20.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES20.GL_FLOAT, false, TextureStride, backTextureBuffer);//顶点坐标传递到顶点着色器
 
-        //绑定纹理
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);//重新激活纹理单元，严谨点应该是选择当前活跃的纹理单元，并不是激活和启用
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTexture);//重新去绑定
+        //激活指定纹理单元，一般默认是第一个
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);//严谨点应该是选择当前活跃的纹理单元，并不是激活和启用
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTexture);//绑定纹理ID到纹理单元
+        //将激活的纹理单元传递到着色器里面
         GLES20.glUniform1i(s_Texture, 0);//设置纹理的坐标；将纹理设置给Shader；将纹理传入Shader（告诉Shader，采样器是哪个）
 
         //图形绘制；顶点法：绘制三角形；复杂图形建议使用索引法；顶点的数量

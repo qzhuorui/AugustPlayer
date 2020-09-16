@@ -23,7 +23,7 @@ public class RenderDrawerGroups {
     private RecordRenderDrawer mRecordDrawer;
 
     private int mInputTexture;//纹理ID
-    private int mFrameBuffer;//FBO帧缓冲区
+    private int mFrameBufferObject;//FBO帧缓冲区
 
     /**
      * @description 初始化被管理类，获取引用句柄
@@ -32,7 +32,7 @@ public class RenderDrawerGroups {
      */
     public RenderDrawerGroups(Context context) {
         this.mInputTexture = 0;
-        this.mFrameBuffer = 0;
+        this.mFrameBufferObject = 0;
         this.mOriginalDrawer = new OriginalRenderDrawer();
         this.mDisplayDrawer = new DisplayRenderDrawer();
         this.mRecordDrawer = new RecordRenderDrawer(context);
@@ -64,7 +64,7 @@ public class RenderDrawerGroups {
      * @author: qzhuorui
      */
     public void surfaceChangedSize(int width, int height) {
-        mFrameBuffer = GlesUtil.createFrameBuffer();//创建FBO
+        mFrameBufferObject = GlesUtil.createFrameBuffer();//创建FBO
 
         mOriginalDrawer.surfaceChangedSize(width, height);
         mDisplayDrawer.surfaceChangedSize(width, height);
@@ -84,7 +84,7 @@ public class RenderDrawerGroups {
      */
     public void draw(long timestamp, float[] transformMatrix) {
         //控制渲染顺序，可以选择绘制到预览或仅绘制到录制层中
-        if (mInputTexture == 0 || mFrameBuffer == 0) {
+        if (mInputTexture == 0 || mFrameBufferObject == 0) {
             Log.d(TAG, "draw: mInputTexture or mFramebuffer or list is zero");
             return;
         }
@@ -118,7 +118,7 @@ public class RenderDrawerGroups {
      */
     private void bindFrameBuffer(int textureId) {
         //通过绑定纹理对象来锁定挂接区
-        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, mFrameBuffer);//绑定一个命名的帧缓冲区对象（FBO），符号常量必须是GL_FRAMEBUFFER
+        GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, mFrameBufferObject);//绑定一个命名的帧缓冲区对象（FBO），符号常量必须是GL_FRAMEBUFFER
         GLES30.glFramebufferTexture2D(GLES30.GL_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0, GLES30.GL_TEXTURE_2D, textureId, 0);//将纹理图像添加到FBO，符号常量必须是GL_FRAMEBUFFER。
     }
 
