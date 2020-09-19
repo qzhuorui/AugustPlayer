@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import com.qzr.augustplayer.encode.AudioEncodeService;
 import com.qzr.augustplayer.encode.VideoEncodeService;
 import com.qzr.augustplayer.utils.EGLHelper;
 import com.qzr.augustplayer.utils.GlesUtil;
@@ -36,6 +37,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     private EGLHelper mEglHelper;
 
     private VideoEncodeService videoEncodeService;
+    private AudioEncodeService audioEncodeService;
     private boolean isRecording;
 
     private int av_Position;
@@ -61,7 +63,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     @Override
     public void create() {
         //override method 暂不去create program
-        mEglContext = EGL14.eglGetCurrentContext();//创建EGL环境，在GLSurface的GLThread中获取EGLContext（存放在ThreadLocal中）
+        mEglContext = EGL14.eglGetCurrentContext();//在GLThread中，获取和当前线程绑定的EGLContext（存放于ThreadLocal中）
     }
 
     /**
@@ -112,8 +114,8 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mDisplayTextureBufferId);
         GLES30.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES30.GL_FLOAT, false, 0, 0);
-
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
+
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mTextureId);
         GLES30.glUniform1i(s_Texture, 0);
@@ -228,7 +230,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         Log.i(TAG, "drawFrame: ");
         mEglHelper.makeCurrent(mEglSurface);
         videoEncodeService.drainEncoderData(false);
-        onDraw(null);
+        onDraw(null);//draw到mEglSurface，codec也就得到了数据!!!
         mEglHelper.setPresentationTime(mEglSurface, timeStamp);
         mEglHelper.swapBuffers(mEglSurface);
     }

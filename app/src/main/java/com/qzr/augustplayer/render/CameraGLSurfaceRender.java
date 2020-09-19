@@ -182,6 +182,7 @@ public class CameraGLSurfaceRender extends GLAbstractRender {
                 "varying vec2 v_texPo; " +
                 "uniform samplerExternalOES s_Texture; " +
                 "void main() { " +
+                //根据纹理坐标，从纹理单元中取色
                 "   gl_FragColor = texture2D(s_Texture, v_texPo); " +
                 "} ";
         return source;

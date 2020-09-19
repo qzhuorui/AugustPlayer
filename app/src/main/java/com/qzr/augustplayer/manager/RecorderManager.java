@@ -78,7 +78,8 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
         }
         hasBuild = true;
         mCurTrackCount = 0;
-        mNeedTrackCount = 2;//video 轨道数为2
+        // TODO: 2020/9/19 暂时直录video
+        mNeedTrackCount = 1;//video 轨道数为2
 
         /**
          * 构建MediaMuxer
@@ -382,9 +383,9 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
 
         mCurTrackCount++;
 
-//        if (mCurTrackCount >= mNeedTrackCount) {
+        if (mCurTrackCount >= mNeedTrackCount) {
             startTransmit();
-//        }
+        }
     }
 
     /**

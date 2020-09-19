@@ -70,6 +70,8 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void initView() {
+        recorderManager = RecorderManager.getInstance();
+
         mCameraSensor = new CameraSensor(this);
         mCameraSensor.setCameraSensorListener(this);
 
@@ -120,11 +122,11 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_video: {
-//                if (isRecording) {
-//                    QzrCameraManager.getInstance().setTakePic(true);
-//                } else {
-//                    RecorderManager.getInstance().takePicture();
-//                }
+                //                if (isRecording) {
+                //                    QzrCameraManager.getInstance().setTakePic(true);
+                //                } else {
+                //                    RecorderManager.getInstance().takePicture();
+                //                }
                 break;
             }
         }
@@ -150,7 +152,7 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
                 break;
             }
             case MessageWhat.START_RECORDER: {
-                recorderManager = RecorderManager.getInstance().buildRecorder();//build codec,muxer
+                recorderManager.buildRecorder();//build codec,muxer
                 cameraGLSurfaceView.startRecord();
                 isRecording = true;
                 break;

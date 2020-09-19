@@ -19,6 +19,7 @@ public class RenderDrawerGroups {
     private static final String TAG = "RenderDrawerGroups";
 
     private OriginalRenderDrawer mOriginalDrawer;
+    private WaterMarkRenderDrawer mWaterMarkDrawer;
     private DisplayRenderDrawer mDisplayDrawer;
     private RecordRenderDrawer mRecordDrawer;
 
@@ -34,6 +35,7 @@ public class RenderDrawerGroups {
         this.mInputTexture = 0;
         this.mFrameBufferObject = 0;
         this.mOriginalDrawer = new OriginalRenderDrawer();
+        this.mWaterMarkDrawer = new WaterMarkRenderDrawer(context);
         this.mDisplayDrawer = new DisplayRenderDrawer();
         this.mRecordDrawer = new RecordRenderDrawer(context);
     }
@@ -54,6 +56,7 @@ public class RenderDrawerGroups {
      */
     public void create() {
         this.mOriginalDrawer.create();
+        this.mWaterMarkDrawer.create();
         this.mDisplayDrawer.create();
         this.mRecordDrawer.create();
     }
@@ -67,14 +70,17 @@ public class RenderDrawerGroups {
         mFrameBufferObject = GlesUtil.createFrameBuffer();//创建FBO
 
         mOriginalDrawer.surfaceChangedSize(width, height);
+        mWaterMarkDrawer.surfaceChangedSize(width, height);
         mDisplayDrawer.surfaceChangedSize(width, height);
         mRecordDrawer.surfaceChangedSize(width, height);
 
         this.mOriginalDrawer.setInputTextureId(mInputTexture);//传入OES纹理ID
-        int textureId = this.mOriginalDrawer.getOutputTextureId();//获取onCreate()创建的2D纹理
-
-        mDisplayDrawer.setInputTextureId(textureId);//传入2D纹理ID
-        mRecordDrawer.setInputTextureId(textureId);//传入2D纹理ID
+        int textureId = this.mOriginalDrawer.getOutputTextureId();//对应FBO的索引句柄，绑定FBO时，所有操作都draw在了这个索引上
+        //纹理ID的传递？？？感觉就是这样的！！！
+        mWaterMarkDrawer.setInputTextureId(textureId);//和FBO绑定后，所有的绘制都draw在了FBO上，对应的索引就是textureId
+        //---数据全部存入FBO中，也可以理解为textureId中，因为已经和FBO绑定了，通过这个ID操作FBO---
+        mDisplayDrawer.setInputTextureId(textureId);//传入存有数据的FBO操作的纹理ID
+        mRecordDrawer.setInputTextureId(textureId);//传入存有数据的FBO操作的纹理ID
     }
 
     /**
@@ -90,6 +96,8 @@ public class RenderDrawerGroups {
         }
         //将绑定到FBO中，最后转换成mOriginalDrawer中的sample2D纹理
         drawRender(mOriginalDrawer, true, timestamp, transformMatrix);
+        //绘制顺序会控制着 水印绘制哪一层
+        drawRender(mWaterMarkDrawer, true, timestamp, transformMatrix);
         //不绑定FBO，直接绘制到屏幕上
         drawRender(mDisplayDrawer, false, timestamp, transformMatrix);
         drawRender(mRecordDrawer, false, timestamp, transformMatrix);
@@ -119,6 +127,7 @@ public class RenderDrawerGroups {
     private void bindFrameBuffer(int textureId) {
         //通过绑定纹理对象来锁定挂接区
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, mFrameBufferObject);//绑定一个命名的帧缓冲区对象（FBO），符号常量必须是GL_FRAMEBUFFER
+        //通过挂在到GL_COLOR_ATTACHMENT0上的纹理ID，得到保存在FBO上的数据
         GLES30.glFramebufferTexture2D(GLES30.GL_FRAMEBUFFER, GLES30.GL_COLOR_ATTACHMENT0, GLES30.GL_TEXTURE_2D, textureId, 0);//将纹理图像添加到FBO，符号常量必须是GL_FRAMEBUFFER。
     }
 

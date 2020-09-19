@@ -151,8 +151,8 @@ public class EGLHelper {
      * @return:
      */
     private EGLSurface createWindowSurface(EGLConfig config, Object surface) {
-        //创建我们想要的EGLSurface，之前的信息保存在config中
-        EGLSurface eglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, config, surface, new int[]{EGL14.EGL_NONE}, 0);//将EGl和设备屏幕连接起来
+        //将EGl和设备屏幕连接起来，这样OpenGL处理的图像就能显示在屏幕上了
+        EGLSurface eglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, config, surface, new int[]{EGL14.EGL_NONE}, 0);
         if (eglSurface == EGL14.EGL_NO_SURFACE) {
             Log.d(TAG, "createWindowSurface" + EGL14.eglGetError());
             return null;
