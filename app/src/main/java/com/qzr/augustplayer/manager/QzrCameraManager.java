@@ -90,7 +90,7 @@ public class QzrCameraManager implements Camera.ErrorCallback, Camera.PreviewCal
 
         Camera.Parameters parameters = mCamera.getParameters();
 
-        mCamera.setDisplayOrientation(90);
+        //mCamera.setDisplayOrientation(90);
 
         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         mCamera.setParameters(parameters);

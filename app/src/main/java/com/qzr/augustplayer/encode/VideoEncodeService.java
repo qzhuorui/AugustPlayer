@@ -6,6 +6,7 @@ import android.media.MediaFormat;
 import android.util.Log;
 import android.view.Surface;
 
+import com.qzr.augustplayer.base.Base;
 import com.qzr.augustplayer.utils.CameraUtil;
 import com.qzr.augustplayer.utils.ThreadPoolProxyFactory;
 
@@ -36,6 +37,7 @@ public class VideoEncodeService {
 
     private MediaCodec mMediaCodec;
     private MediaFormat mMediaFormat;
+    private MediaCodec.BufferInfo encodeBufferInfo;
 
     private Surface mInputSurface;
 
@@ -60,12 +62,15 @@ public class VideoEncodeService {
         return instance;
     }
 
-    public VideoEncodeService() {
+    private VideoEncodeService() {
         try {
-            mMediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
-            mMediaFormat = MediaFormat.createVideoFormat(MIME_TYPE, 1920, 1080);
+            int width = Base.SV.getVideoWidth();
+            int height = Base.SV.getVideoHeight();
 
-            mMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 1920 * 1080 * 3 * 8 * 30 / 256);
+            mMediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
+            mMediaFormat = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
+
+            mMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height * 3 * 8 * 30 / 256);
             mMediaFormat.setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR);
             mMediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
             mMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
@@ -77,7 +82,9 @@ public class VideoEncodeService {
 
             mInputSurface = mMediaCodec.createInputSurface();//codec创建surface，为输入数据创建一个目标Surface，根据这个生成eglSurface
 
-            YUVDate = new byte[1920 * 1080 * 3 / 2];
+            encodeBufferInfo = new MediaCodec.BufferInfo();
+
+            YUVDate = new byte[width * height * 3 / 2];
             encodeDataQueue = new LinkedList<>();
             bufferAvailableCallback = new CopyOnWriteArraySet<>();
 
@@ -158,7 +165,6 @@ public class VideoEncodeService {
                     mMediaCodec.queueInputBuffer(inputIndex, 0, YUVDate.length, pts, 0);
                 }
 
-                MediaCodec.BufferInfo encodeBufferInfo = new MediaCodec.BufferInfo();
                 int outputIndex = mMediaCodec.dequeueOutputBuffer(encodeBufferInfo, TIMEOUT_S);
 
                 if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
@@ -305,7 +311,6 @@ public class VideoEncodeService {
             //然后等到我们在编码输出的数据发现EOS的时候，证明最后的一批编码数据已经编码成功了
             mMediaCodec.signalEndOfInputStream();
         }
-        MediaCodec.BufferInfo encodeBufferInfo = new MediaCodec.BufferInfo();
         while (true) {
             int outputIndex = mMediaCodec.dequeueOutputBuffer(encodeBufferInfo, TIMEOUT_S);
 
@@ -327,9 +332,9 @@ public class VideoEncodeService {
                         }
                     }
                 }
-            }
-
-            while (outputIndex >= 0) {
+            } else if (outputIndex < 0) {
+                Log.e(TAG, "unexpected result from encoder.dequeueOutputBuffer: " + outputIndex);
+            } else {
                 ByteBuffer outputBuffer = mMediaCodec.getOutputBuffer(outputIndex);
 
                 if (encodeBufferInfo.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
@@ -347,8 +352,6 @@ public class VideoEncodeService {
                 }
 
                 mMediaCodec.releaseOutputBuffer(outputIndex, false);
-                encodeBufferInfo = new MediaCodec.BufferInfo();
-                outputIndex = mMediaCodec.dequeueOutputBuffer(encodeBufferInfo, TIMEOUT_S);
 
                 if ((encodeBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                     break;

@@ -14,7 +14,6 @@ import com.qzr.augustplayer.R;
 import com.qzr.augustplayer.base.BaseActivity;
 import com.qzr.augustplayer.base.MessageWhat;
 import com.qzr.augustplayer.manager.QzrCameraManager;
-import com.qzr.augustplayer.manager.RecorderManager;
 import com.qzr.augustplayer.service.CameraSensor;
 import com.qzr.augustplayer.utils.HandlerProcess;
 import com.qzr.augustplayer.widget.CameraGLSurfaceView;
@@ -37,7 +36,6 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
     private CameraSensor mCameraSensor;
 
     private boolean isRecording = false;
-    private RecorderManager recorderManager;
 
     SurfaceTexture mSurfaceTexture;
 
@@ -70,8 +68,6 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void initView() {
-        recorderManager = RecorderManager.getInstance();
-
         mCameraSensor = new CameraSensor(this);
         mCameraSensor.setCameraSensorListener(this);
 
@@ -147,12 +143,10 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
         switch (what) {
             case MessageWhat.STOP_RECORDER: {
                 cameraGLSurfaceView.stopRecord();
-                recorderManager.releaseRecord();
                 isRecording = false;
                 break;
             }
             case MessageWhat.START_RECORDER: {
-                recorderManager.buildRecorder();//build codec,muxer
                 cameraGLSurfaceView.startRecord();
                 isRecording = true;
                 break;

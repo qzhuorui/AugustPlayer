@@ -23,7 +23,7 @@ public class RenderDrawerGroups {
     private DisplayRenderDrawer mDisplayDrawer;
     private RecordRenderDrawer mRecordDrawer;
 
-    private int mInputTexture;//纹理ID
+    private int mInputTexture;//输入纹理ID
     private int mFrameBufferObject;//FBO帧缓冲区
 
     /**

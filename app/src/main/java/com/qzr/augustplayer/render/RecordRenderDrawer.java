@@ -11,8 +11,10 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.qzr.augustplayer.encode.AudioEncodeService;
+import com.qzr.augustplayer.base.Base;
 import com.qzr.augustplayer.encode.VideoEncodeService;
+import com.qzr.augustplayer.manager.RecorderManager;
+import com.qzr.augustplayer.utils.AssetsUtils;
 import com.qzr.augustplayer.utils.EGLHelper;
 import com.qzr.augustplayer.utils.GlesUtil;
 
@@ -36,8 +38,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     private Handler mMsgHandler;
     private EGLHelper mEglHelper;
 
-    private VideoEncodeService videoEncodeService;
-    private AudioEncodeService audioEncodeService;
+    private RecorderManager recorderManager;
     private boolean isRecording;
 
     private int av_Position;
@@ -48,7 +49,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     public RecordRenderDrawer(Context context) {
         this.mTextureId = 0;
         this.mEglHelper = null;
-        this.videoEncodeService = null;
+        this.recorderManager = null;
         this.isRecording = false;
         new Thread(this).start();
     }
@@ -84,6 +85,8 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
 
     @Override
     public void surfaceChangedSize(int width, int height) {
+        Base.SV.setVideoWidth(width);
+        Base.SV.setVideoHeight(height);
         this.width = width;
         this.height = height;
     }
@@ -143,19 +146,17 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
 
     @Override
     protected String getVertexSource() {
-        final String source = "attribute vec4 av_Position; " + "attribute vec2 af_Position; " + "varying vec2 v_texPo; " + "void main() { " + "    v_texPo = af_Position; " + "    gl_Position = av_Position; " + "}";
-        return source;
+        return AssetsUtils.getVertexStrFromAssert(Base.CURRENT_APP, "vertex_recorder");
     }
 
     @Override
     protected String getFragmentSource() {
-        final String source = "precision mediump float;\n" + "varying vec2 v_texPo;\n" + "uniform sampler2D s_Texture;\n" + "void main() {\n" + "   vec4 tc = texture2D(s_Texture, v_texPo);\n" + "   gl_FragColor = texture2D(s_Texture, v_texPo);\n" + "}";
-        return source;
+        return AssetsUtils.getFragmentStrFromAssert(Base.CURRENT_APP, "fragment_recorder");
     }
 
     public void startRecord() {
         Log.i(TAG, "startRecord: ");
-        Message msg = mMsgHandler.obtainMessage(MsgHandler.MSG_START_RECORD, width, height, mEglContext);
+        Message msg = mMsgHandler.obtainMessage(MsgHandler.MSG_START_RECORD, mEglContext);
         mMsgHandler.sendMessage(msg);
         isRecording = true;
     }
@@ -177,7 +178,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_START_RECORD: {
-                    prepareVideoEncoder((EGLContext) msg.obj, msg.arg1, msg.arg2);
+                    prepareVideoEncoder((EGLContext) msg.obj);
                     break;
                 }
                 case MSG_STOP_RECORD: {
@@ -194,15 +195,19 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         }
     }
 
-    private void prepareVideoEncoder(EGLContext context, int width, int height) {
+    private void prepareVideoEncoder(EGLContext context) {
         try {
             //根据当前线程的eglContext，创建openGl环境，配置
             mEglHelper = new EGLHelper();
             mEglHelper.createGL(context);//创建EGL上下文环境等
 
-            videoEncodeService = VideoEncodeService.getInstance();
-            videoEncodeService.startVideoEncode();//codec.start
-            mEglSurface = mEglHelper.createWindowSurface(videoEncodeService.getInputSurface());//根据codec的surface创建eglSurface；创建要使用的渲染surface
+            recorderManager = RecorderManager.getInstance().buildRecorder();
+            boolean result = recorderManager.startRecord(false);
+            if (!result) {
+                Log.e(TAG, "prepareVideoEncoder: startMediaModule failure");
+                return;
+            }
+            mEglSurface = mEglHelper.createWindowSurface(recorderManager.getCodecInputSurface());//根据codec的surface创建eglSurface；创建要使用的渲染surface
             //注意：OpenGL.ES的渲染必须新开一个线程，并为该线程绑定显示设备和context；OpenGL的指令必须在其Context环境中才能执行，必须makeCurrent
             boolean error = mEglHelper.makeCurrent(mEglSurface);//在完成EGL的初始化之后,需要通过eglMakeCurrent()函数来将当前的上下文切换,这样opengl的函数才能启动作用。
             if (!error) {
@@ -210,26 +215,25 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
             }
             onCreated();
         } catch (Exception e) {
-            Log.e(TAG, "prepareVideoEncoder: ");
             e.printStackTrace();
         }
     }
 
     private void stopVideoEncoder() {
-        videoEncodeService.drainEncoderData(true);
+        VideoEncodeService.getInstance().drainEncoderData(true);
+        recorderManager.stopRecord(false);
         if (mEglHelper != null) {
             mEglHelper.destroySurface(mEglSurface);
             mEglHelper.destroyGL();
             mEglSurface = EGL14.EGL_NO_SURFACE;
             mEglHelper = null;
-            videoEncodeService = null;
+            recorderManager = null;
         }
     }
 
     private void drawFrame(long timeStamp) {
-        Log.i(TAG, "drawFrame: ");
         mEglHelper.makeCurrent(mEglSurface);
-        videoEncodeService.drainEncoderData(false);
+        VideoEncodeService.getInstance().drainEncoderData(false);
         onDraw(null);//draw到mEglSurface，codec也就得到了数据!!!
         mEglHelper.setPresentationTime(mEglSurface, timeStamp);
         mEglHelper.swapBuffers(mEglSurface);

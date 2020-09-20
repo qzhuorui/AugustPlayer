@@ -2,6 +2,9 @@ package com.qzr.augustplayer.render;
 
 import android.opengl.GLES30;
 
+import com.qzr.augustplayer.base.Base;
+import com.qzr.augustplayer.utils.AssetsUtils;
+
 /**
  * @ProjectName: AugustPlayer
  * @Package: com.qzr.augustplayer.render
@@ -76,26 +79,11 @@ public class DisplayRenderDrawer extends BaseRenderDrawer {
 
     @Override
     protected String getVertexSource() {
-        final String source = "attribute vec4 av_Position; " +
-                "attribute vec2 af_Position; " +
-                "varying vec2 v_texPo; " +
-                "void main() { " +
-                "    v_texPo = af_Position; " +
-                "    gl_Position = av_Position; " +
-                "}";
-        return source;
+        return AssetsUtils.getVertexStrFromAssert(Base.CURRENT_APP, "vertex_display");
     }
 
     @Override
     protected String getFragmentSource() {
-        final String source = "precision mediump float;" +
-                "varying vec2 v_texPo;" +
-                "uniform sampler2D s_Texture;" +
-                "void main() {" +
-                "   vec4 tc = texture2D(s_Texture, v_texPo);" +
-                "   float color = tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11;" +
-                "    gl_FragColor = vec4(color, color, color, 1);" +
-                "}";
-        return source;
+        return AssetsUtils.getFragmentStrFromAssert(Base.CURRENT_APP, "fragment_display");
     }
 }

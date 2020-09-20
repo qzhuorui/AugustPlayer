@@ -40,7 +40,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         mCameraTextureId = GlesUtil.createCameraTexture();//生成纹理ID，绑定到OES上，接收camera原始数据
-        renderDrawerGroups.setInputTexture(mCameraTextureId);//传入OES纹理Id
+        renderDrawerGroups.setInputTexture(mCameraTextureId);//传入OES纹理Id；感觉还是和设置水印那里一样，其实是数据的传递，纹理上承载着数据
         renderDrawerGroups.create();
         //根据mCameraTextureId创建对应Surface
         initCameraTexture();
@@ -87,8 +87,10 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
         if (mCameraTexture!=null){
             //更新预览上的图像由onRequestRender通知
             mCameraTexture.updateTexImage();//根据内容流中最近的图像更新SurfaceTexture对应的GL纹理对象，也是告诉camera我已经使用这帧图像了
+
             timestamp = mCameraTexture.getTimestamp();//获取最近updateTexImage的时间戳
             mCameraTexture.getTransformMatrix(mTransformMatrix);//获取最近updateTexImage导致的4X4纹理坐标变化矩阵
+
             renderDrawerGroups.draw(timestamp, mTransformMatrix);
         }
         if (mCallback != null) {

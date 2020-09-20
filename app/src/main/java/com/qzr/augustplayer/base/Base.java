@@ -13,4 +13,5 @@ public interface Base {
     public static final String TAG = "Base";
 
     public static final BaseApplication CURRENT_APP = BaseApplication.getInstance();
+    public static final SettingValues SV = new SettingValues();
 }

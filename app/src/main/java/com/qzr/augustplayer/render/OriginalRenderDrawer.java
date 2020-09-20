@@ -3,6 +3,8 @@ package com.qzr.augustplayer.render;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES30;
 
+import com.qzr.augustplayer.base.Base;
+import com.qzr.augustplayer.utils.AssetsUtils;
 import com.qzr.augustplayer.utils.GlesUtil;
 
 /**
@@ -35,6 +37,7 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
 
     @Override
     protected void onChanged(int width, int height) {
+        //水印，录制等需要的是2D纹理，Camera是OES，借助FBO实现
         mOutputTextureId = GlesUtil.createFrameTexture(width, height);//创建2D纹理ID
 
         //拿到GL SL中声明的变量的对应引用
@@ -52,30 +55,24 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
         GLES30.glEnableVertexAttribArray(af_Position);
 
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mVertexBufferId);
+        //用GPU中的缓冲数据，不在RAM中取数据，所以后2个参数为0
         GLES30.glVertexAttribPointer(av_Position, CoordsPerVertexCount, GLES30.GL_FLOAT, false, 0, 0);
         //backCamera
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mBackTextureBufferId);
         GLES30.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES30.GL_FLOAT, false, 0, 0);
-
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
         //绘制
-        bindTexture(mInputTextureId);
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);//激活纹理单元
+        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mInputTextureId);//绑定OES纹理
+        GLES30.glUniform1i(s_Texture, 0);//将纹理设置给Shader
+
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, VertexCount);
-        unBindTexure();
+
+        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
 
         GLES30.glDisableVertexAttribArray(av_Position);
         GLES30.glDisableVertexAttribArray(af_Position);
-    }
-
-    private void bindTexture(int textureId) {
-        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);//激活纹理单元
-        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);//绑定OES纹理
-        GLES30.glUniform1i(s_Texture, 0);//将纹理设置给Shader
-    }
-
-    private void unBindTexure() {
-        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     }
 
     @Override
@@ -92,25 +89,11 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
 
     @Override
     protected String getVertexSource() {
-        final String source = "attribute vec4 av_Position; " +
-                "attribute vec2 af_Position; " +
-                "varying vec2 v_texPo; " +
-                "void main() { " +
-                "    v_texPo = af_Position; " +
-                "    gl_Position = av_Position; " +
-                "}";
-        return source;
+        return AssetsUtils.getVertexStrFromAssert(Base.CURRENT_APP, "vertex_original");
     }
 
     @Override
     protected String getFragmentSource() {
-        final String source = "#extension GL_OES_EGL_image_external : require \n" +
-                "precision mediump float; " +
-                "varying vec2 v_texPo; " +
-                "uniform samplerExternalOES s_Texture; " +
-                "void main() { " +
-                "   gl_FragColor = texture2D(s_Texture, v_texPo); " +
-                "} ";
-        return source;
+        return AssetsUtils.getFragmentStrFromAssert(Base.CURRENT_APP, "fragment_original");
     }
 }

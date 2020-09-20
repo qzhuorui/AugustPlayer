@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.AudioManager;
 import android.util.Log;
+import android.view.Surface;
 import android.widget.Toast;
 
 import com.qzr.augustplayer.base.Base;
@@ -78,8 +79,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
         }
         hasBuild = true;
         mCurTrackCount = 0;
-        // TODO: 2020/9/19 暂时直录video
-        mNeedTrackCount = 1;//video 轨道数为2
+        mNeedTrackCount = 2;//video 轨道数为2
 
         /**
          * 构建MediaMuxer
@@ -137,7 +137,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
         }
     }
 
-    public boolean startRecord() {
+    public boolean startRecord(boolean cameraFeedSource) {
         //检查权限，存储
         if (!checkMicPermission()) {
             return false;
@@ -168,8 +168,11 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
         //start muxer ready to mix to file
         startRecordMix2File();
 
-        //feedback nv21 data to encoder
-        startCameraRun();
+        //camera preview feed codec或者OpenGL feed codec data
+        if (cameraFeedSource) {
+            //feedback nv21 data to encoder
+            startCameraRun();
+        }
 
         //feedback pcm data to encoder
         startMicRun();
@@ -179,7 +182,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
         return true;
     }
 
-    public synchronized boolean stopRecord() {
+    public synchronized boolean stopRecord(boolean cameraFeedSource) {
         mEncodeStarted = false;
         if (mVideoEncodeService == null) {
             return false;
@@ -212,7 +215,9 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
 
         releaseRecord();
 
-        QzrCameraManager.getInstance().stopOfferEncode();
+        if (cameraFeedSource) {
+            QzrCameraManager.getInstance().stopOfferEncode();
+        }
 
         QzrMicManager.getInstance().removePcmDataGetCallback(mAudioEncodeService);
         QzrMicManager.getInstance().stopMicManager();
@@ -316,6 +321,10 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
         }
     }
 
+    public Surface getCodecInputSurface() {
+        return mVideoEncodeService.getInputSurface();
+    }
+
     @Override
     public void handleMsg(int what, Object o) {
         switch (what) {
@@ -361,7 +370,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
      */
     @Override
     public synchronized void onCdsInfoUpdate(byte[] csd0, byte[] csd1, int source) {
-        Log.d(TAG, "onCdsInfoUpdate: ");
+        //Log.d(TAG, "onCdsInfoUpdate: ");
         if (mMp4MuxerManager == null) {
             return;
         }
@@ -396,7 +405,7 @@ public class RecorderManager implements QzrCameraManager.TakePicDataCallBack, Ha
      */
     @Override
     public synchronized void onEncodeBufferAvailable(MuxerBean muxerBean, int source) {
-        Log.d(TAG, "onEncodeBufferAvailable: ");
+        //Log.d(TAG, "onEncodeBufferAvailable: ");
         if (mCurTrackCount <= 0) {
             stopRecordMix2File();
         }

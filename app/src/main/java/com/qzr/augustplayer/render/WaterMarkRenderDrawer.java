@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES30;
 
 import com.qzr.augustplayer.R;
+import com.qzr.augustplayer.base.Base;
+import com.qzr.augustplayer.utils.AssetsUtils;
 import com.qzr.augustplayer.utils.GlesUtil;
 
 /**
@@ -28,7 +30,10 @@ public class WaterMarkRenderDrawer extends BaseRenderDrawer {
     private int sTexture;
 
     public WaterMarkRenderDrawer(Context context) {
-        mBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.watermark);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
+        options.inSampleSize = 2;
+        mBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.watermark, options);
     }
 
     @Override
@@ -88,26 +93,11 @@ public class WaterMarkRenderDrawer extends BaseRenderDrawer {
 
     @Override
     protected String getVertexSource() {
-        final String source =
-                "attribute vec4 av_Position; " +
-                        "attribute vec2 af_Position; " +
-                        "varying vec2 v_texPo; " +
-                        "void main() { " +
-                        "    v_texPo = af_Position; " +
-                        "    gl_Position = av_Position; " +
-                        "}";
-        return source;
+        return AssetsUtils.getVertexStrFromAssert(Base.CURRENT_APP, "vertex_watermark");
     }
 
     @Override
     protected String getFragmentSource() {
-        final String source =
-                "precision mediump float; " +
-                        "varying vec2 v_texPo; " +
-                        "uniform sampler2D sTexture; " +
-                        "void main() { " +
-                        "   gl_FragColor = texture2D(sTexture, v_texPo); " +
-                        "} ";
-        return source;
+        return AssetsUtils.getFragmentStrFromAssert(Base.CURRENT_APP, "fragment_watermark");
     }
 }

@@ -20,30 +20,35 @@ public abstract class BaseRenderDrawer {
 
     private static final String TAG = "BaseRenderDrawer";
 
+    //顶点坐标
     private float vertexData[] = {
-            -1f, -1f,// 左下角
-            1f, -1f, // 右下角
-            -1f, 1f, // 左上角
-            1f, 1f,  // 右上角
+            -1f, -1f,
+            1f, -1f,
+            -1f, 1f,
+            1f, 1f
     };
+    //纹理坐标对应顶点坐标与后置摄像头映射，后置逆时针转了270
     private float backTextureData[] = {
-            0f, 1f, // 左上角
-            0f, 0f, //  左下角
-            1f, 1f, // 右上角
-            1f, 0f  // 右下角
+            0f, 1f,
+            0f, 0f,
+            1f, 1f,
+            1f, 0f
     };
+    //纹理坐标对应顶点坐标与前置摄像头映射
     private float frontTextureData[] = {
-            1f, 1f, // 右上角
-            1f, 0f, // 右下角
-            0f, 1f, // 左上角
-            0f, 0f //  左下角
+            1f, 1f,
+            1f, 0f,
+            0f, 1f,
+            0f, 0f
     };
+    //预览的纹理坐标
     private float displayTextureData[] = {
             0f, 1f,
             1f, 1f,
             0f, 0f,
-            1f, 0f,
+            1f, 0f
     };
+    //FBO纹理坐标
     private float frameBufferData[] = {
             0f, 0f,
             1f, 0f,
@@ -67,12 +72,14 @@ public abstract class BaseRenderDrawer {
     private FloatBuffer mFrameTextureBuffer;
     protected int mFrameTextureBufferId;
 
+    //每次取点的数量
     protected final int CoordsPerVertexCount = 2;
+    //顶点坐标数量
     protected final int VertexCount = vertexData.length / CoordsPerVertexCount;
-    protected final int VertexStride = CoordsPerVertexCount * 4;
 
+
+    //每次取点的数量
     protected final int CoordsPerTextureCount = 2;
-    protected final int TextureStride = CoordsPerTextureCount * 4;
 
     protected int mProgram;
 
