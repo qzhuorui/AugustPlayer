@@ -63,6 +63,9 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
         //绘制
+        /**
+         * 给纹理采样器分配一个位置值，这样能在一个片段着色器中设置多个纹理，一个纹理的位置值称为一个纹理单元
+         */
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);//激活纹理单元
         GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mInputTextureId);//绑定OES纹理
         GLES30.glUniform1i(s_Texture, 0);//将纹理设置给Shader
