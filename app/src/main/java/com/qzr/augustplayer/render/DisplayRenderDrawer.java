@@ -49,7 +49,6 @@ public class DisplayRenderDrawer extends BaseRenderDrawer {
         //用GPU中的缓冲数据，不在RAM中取数据，所以后2个参数为0
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, mDisplayTextureBufferId);
         GLES30.glVertexAttribPointer(af_Position, CoordsPerTextureCount, GLES30.GL_FLOAT, false, 0, 0);
-
         GLES30.glBindBuffer(GLES30.GL_ARRAY_BUFFER, 0);
 
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);

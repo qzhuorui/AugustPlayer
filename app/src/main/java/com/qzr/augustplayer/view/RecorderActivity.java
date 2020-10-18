@@ -37,6 +37,7 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
 
     private boolean isRecording = false;
 
+    //承载显示的预览数据，根据textureID生成
     SurfaceTexture mSurfaceTexture;
 
     @Override

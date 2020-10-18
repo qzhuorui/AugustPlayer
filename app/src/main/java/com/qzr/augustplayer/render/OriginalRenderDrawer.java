@@ -42,7 +42,7 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
 
         //拿到GL SL中声明的变量的对应引用
         av_Position = GLES30.glGetAttribLocation(mProgram, "av_Position");
-        af_Position = GLES30.glGetAttribLocation(mProgram, "af_Position");
+        af_Position = GLES30.glGetAttribLocation(mProgram, "af_Position");//纹理坐标，传给fragment_shader再varying到fragment_shader
         s_Texture = GLES30.glGetUniformLocation(mProgram, "s_Texture");
     }
 
@@ -67,8 +67,8 @@ public class OriginalRenderDrawer extends BaseRenderDrawer {
          * 给纹理采样器分配一个位置值，这样能在一个片段着色器中设置多个纹理，一个纹理的位置值称为一个纹理单元
          */
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);//激活纹理单元
-        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mInputTextureId);//绑定OES纹理
-        GLES30.glUniform1i(s_Texture, 0);//将纹理设置给Shader
+        GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mInputTextureId);//纹理单元
+        GLES30.glUniform1i(s_Texture, 0);//将纹理单元设置给Shader。根据纹理坐标从纹理单元中取色
 
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, VertexCount);
 

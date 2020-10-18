@@ -33,8 +33,10 @@ public class CameraGLSurfaceView extends GLSurfaceView implements CameraSurfaceR
     private void init(Context context) {
         setEGLContextClientVersion(3);
         setDebugFlags(GLSurfaceView.DEBUG_CHECK_GL_ERROR);//激活log或错误检测
-        mRender = new CameraSurfaceRender(context);
-        setRenderer(mRender);//很重要，渲染工作就依靠渲染器；会开启一个线程，即GL线程
+        mRender = new CameraSurfaceRender(context);//自定义渲染器
+        //后面的操作都是根据Render的生命周期来分步进行
+        setRenderer(mRender);//很重要，渲染工作就依靠渲染器；会开启一个线程，即GL线程；GLThread绘制在独立Surface并默认创建EGL上下文
+        //实现Render对应的生命周期回调
         mRender.setCallback(this);//注意setRenderer时序
         setRenderMode(RENDERMODE_WHEN_DIRTY);
     }

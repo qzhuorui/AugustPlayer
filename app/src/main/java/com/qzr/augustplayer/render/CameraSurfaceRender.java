@@ -40,7 +40,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         mCameraTextureId = GlesUtil.createCameraTexture();//生成纹理ID，绑定到OES上，接收camera原始数据
-        renderDrawerGroups.setInputTexture(mCameraTextureId);//传入OES纹理Id；感觉还是和设置水印那里一样，其实是数据的传递，纹理上承载着数据
+        renderDrawerGroups.setInputTexture(mCameraTextureId);//传入OES纹理Id；感觉还是和设置水印那里一样，其实是数据的传递，纹理上承载着数据，纹理传递
         renderDrawerGroups.create();
         //根据mCameraTextureId创建对应Surface
         initCameraTexture();
@@ -56,9 +56,10 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
       */
     private void initCameraTexture() {
         /**
-         * 我们可以这样理解，
+         * 可以这样理解，
          * 就是我们通过这个SurfaceTexture从Camera接取预览帧的图像流，
          * 然后我们就可以通过其绑定的GL纹理对象，直接按照纹理使用绘制了
+         * 通过textureId数据互通了
          */
         mCameraTexture = new SurfaceTexture(mCameraTextureId);//根据生成的纹理，新建surfaceTexture
         //用于让SurfaceTexture的使用者知道有新数据到来
@@ -85,7 +86,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         if (mCameraTexture!=null){
-            //更新预览上的图像由onRequestRender通知
+            //更新预览上的图像，由onRequestRender通知触发
             mCameraTexture.updateTexImage();//根据内容流中最近的图像更新SurfaceTexture对应的GL纹理对象，也是告诉camera我已经使用这帧图像了
 
             timestamp = mCameraTexture.getTimestamp();//获取最近updateTexImage的时间戳
