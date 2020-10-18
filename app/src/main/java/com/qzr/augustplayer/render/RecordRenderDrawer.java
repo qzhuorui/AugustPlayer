@@ -213,7 +213,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
             if (!error) {
                 Log.e(TAG, "prepareVideoEncoder: make current error");
             }
-            onCreated();
+            onCreated();//切换环境后，才能使用OpenGL函数
         } catch (Exception e) {
             e.printStackTrace();
         }
