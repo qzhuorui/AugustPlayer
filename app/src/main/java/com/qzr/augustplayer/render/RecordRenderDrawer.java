@@ -64,6 +64,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     @Override
     public void create() {
         //override method 暂不去create program
+        //这里其实是：利用共享GLSurfaceview的EGLContext创建EGL环境。给我们自己的线程提供使用
         mEglContext = EGL14.eglGetCurrentContext();//在GLThread中，获取和当前线程绑定的EGLContext（存放于ThreadLocal中）
     }
 

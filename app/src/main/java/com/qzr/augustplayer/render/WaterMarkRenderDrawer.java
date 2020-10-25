@@ -56,7 +56,7 @@ public class WaterMarkRenderDrawer extends BaseRenderDrawer {
         viewPort(40, 75, mBitmap.getWidth() * 2, mBitmap.getHeight() * 2);
         GLES30.glDisable(GLES30.GL_DEPTH_TEST);
         GLES30.glEnable(GLES30.GL_BLEND);
-        GLES30.glBlendFunc(GLES30.GL_SRC_COLOR, GLES30.GL_ONE);
+        GLES30.glBlendFunc(GLES30.GL_SRC_COLOR, GLES30.GL_ONE);//源因子，目的因子。源*源因子+目的&目的因子
         onDraw(transformMatrix);
         GLES30.glDisable(GLES30.GL_BLEND);
     }
