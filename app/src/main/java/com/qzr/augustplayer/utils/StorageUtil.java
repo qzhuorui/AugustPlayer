@@ -1,6 +1,9 @@
 package com.qzr.augustplayer.utils;
 
 import android.os.Environment;
+import android.widget.Toast;
+
+import com.qzr.augustplayer.base.Base;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -48,12 +51,26 @@ public class StorageUtil {
 
     public static File getOutPutImageFile() {
         String timestamp = spFormat.get().format(new Date());
-        return new File(getSDPath() + "/" + getDirName() + "/image/", timestamp + ".jpg");
+        File picFile = new File(getSDPath() + "/" + getDirName() + "/image/");
+        if (!picFile.exists()) {
+            if (!picFile.mkdirs()) {
+                Toast.makeText(Base.CURRENT_APP, "pic mkdirs failure", Toast.LENGTH_SHORT).show();
+                return null;
+            }
+        }
+        return  new File(picFile + File.separator + timestamp + ".jpg");
     }
 
     public static File getOutPutVideoFile() {
         String timestamp = spFormat.get().format(new Date());
-        return new File(getSDPath() + "/" + getDirName() + "/video/", timestamp + ".mp4");
+        File videoFile = new File(getSDPath() + "/" + getDirName() + "/video/");
+        if (!videoFile.exists()) {
+            if (!videoFile.mkdirs()) {
+                Toast.makeText(Base.CURRENT_APP, "video mkdirs failure", Toast.LENGTH_SHORT).show();
+                return null;
+            }
+        }
+        return new File(videoFile + File.separator + timestamp + ".mp4");
     }
 
     public static File getOutPutLogFile() {

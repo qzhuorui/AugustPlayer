@@ -235,7 +235,7 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
     private void drawFrame(long timeStamp) {
         mEglHelper.makeCurrent(mEglSurface);
         VideoEncodeService.getInstance().drainEncoderData(false);
-        onDraw(null);//draw到mEglSurface，codec也就得到了数据!!!
+        onDraw(null);//draw到mEglSurface，也就是draw到编码器，codec也就得到了数据!!!
         mEglHelper.setPresentationTime(mEglSurface, timeStamp);
         mEglHelper.swapBuffers(mEglSurface);
     }
