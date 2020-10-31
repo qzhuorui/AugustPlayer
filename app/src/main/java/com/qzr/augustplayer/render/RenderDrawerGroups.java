@@ -75,6 +75,7 @@ public class RenderDrawerGroups {
         mRecordDrawer.surfaceChangedSize(width, height);
 
         this.mOriginalDrawer.setInputTextureId(mInputTexture);//传入OES纹理ID
+        //取出的是新生成的2D纹理，之后会和FBO绑定，挂接！！！
         int textureId = this.mOriginalDrawer.getOutputTextureId();//对应FBO的索引句柄，绑定FBO时，所有操作都draw在了这个索引上
         //纹理ID的传递？？？感觉就是这样的！！！
 

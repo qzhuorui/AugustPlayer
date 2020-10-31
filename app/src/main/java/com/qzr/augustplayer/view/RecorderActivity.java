@@ -159,6 +159,7 @@ public class RecorderActivity extends BaseActivity implements View.OnTouchListen
 
     @Override
     public void onSurfaceViewCreate(SurfaceTexture texture) {
+        //OES纹理生成的texture，数据互通
         mSurfaceTexture = texture;
     }
 

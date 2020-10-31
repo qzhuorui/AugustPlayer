@@ -1,6 +1,5 @@
 package com.qzr.augustplayer.render;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.opengl.EGL14;
 import android.opengl.EGLContext;
@@ -22,7 +21,7 @@ import com.qzr.augustplayer.utils.GlesUtil;
  * @ProjectName: AugustPlayer
  * @Package: com.qzr.augustplayer.render
  * @ClassName: RecordRenderDrawer
- * @Description:
+ * @Description: 要在自定义的线程中编解码所以需要使用EGL，因为没在GLThread所以需要自己创建EGL环境
  * @Author: qzhuorui
  * @CreateDate: 2020/9/5 12:50
  */
@@ -168,7 +167,6 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         mMsgHandler.sendMessage(mMsgHandler.obtainMessage(MsgHandler.MSG_STOP_RECORD));
     }
 
-    @SuppressLint("HandlerLeak")
     private class MsgHandler extends Handler {
 
         static final int MSG_START_RECORD = 1;
@@ -229,6 +227,8 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
             mEglSurface = EGL14.EGL_NO_SURFACE;
             mEglHelper = null;
             recorderManager = null;
+            //防止内存泄漏
+            mMsgHandler.removeCallbacksAndMessages(null);
         }
     }
 
