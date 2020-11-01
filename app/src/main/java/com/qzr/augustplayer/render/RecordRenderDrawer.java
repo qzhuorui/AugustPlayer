@@ -198,10 +198,10 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
         try {
             //根据当前线程的eglContext，创建openGl环境，配置
             mEglHelper = new EGLHelper();
-            mEglHelper.createGL(context);//创建EGL上下文环境等
+            mEglHelper.createGL(context);//创建EGL上下文环境等：Display，Config，EGLContext
 
             recorderManager = RecorderManager.getInstance().buildRecorder();
-            boolean result = recorderManager.startRecord(false);
+            boolean result = recorderManager.startRecord(false);//start All,then wait video data
             if (!result) {
                 Log.e(TAG, "prepareVideoEncoder: startMediaModule failure");
                 return;
@@ -234,8 +234,8 @@ public class RecordRenderDrawer extends BaseRenderDrawer implements Runnable {
 
     private void drawFrame(long timeStamp) {
         mEglHelper.makeCurrent(mEglSurface);
-        VideoEncodeService.getInstance().drainEncoderData(false);
         onDraw(null);//draw到mEglSurface，也就是draw到编码器，codec也就得到了数据!!!
+        VideoEncodeService.getInstance().drainEncoderData(false);
         mEglHelper.setPresentationTime(mEglSurface, timeStamp);
         mEglHelper.swapBuffers(mEglSurface);
     }
